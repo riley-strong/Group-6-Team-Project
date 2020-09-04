@@ -1,5 +1,5 @@
 public class Product {
-
+//test
     private int quantity;
     private double wholesale; private double salePrice;
     private String supplierID; private String productID;
