@@ -1,5 +1,5 @@
 public class Product {
-//test
+
     private int quantity;
     private double wholesale; private double salePrice;
     private String supplierID; private String productID;
@@ -48,5 +48,9 @@ public class Product {
     }
     public void setSalePrice(double newSale){
         salePrice = newSale;
+    }
+    @Override
+    public String toString(){
+        return "";
     }
 }
