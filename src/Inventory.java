@@ -98,8 +98,10 @@ public class Inventory {
 
 
     public static void main(String[] args) throws FileNotFoundException {
-        Inventory newInv = new Inventory();
-        newInv.loadInventory();
+        //Inventory newInv = new Inventory();
+    	
+    	DataBaseSimulator db = new DataBaseSimulator("E3DW666QY2E7");
+    	
     }
 
 
