@@ -10,17 +10,51 @@ public class DataBaseSimulator {
     private static Inventory ourInventory;
 
 
-    public DataBaseSimulator(String productID) throws FileNotFoundException {
+    public void updateQuantity(String productID) throws FileNotFoundException {
         ourInventory = new Inventory();
         int random = new Random().nextInt();
         random = random < 0 ? random * -1 : random;
-        System.out.println("Initial inventory quantity: " + ourInventory.getQuantity(productID) + "\n" + "random integer is: " + random);
+        System.out.println("Initial quantity: " + ourInventory.getQuantity(productID) + "\n" + "random integer is: " + random);
         ourInventory.setQuantity(productID, random);
-        System.out.println("final quantity: " + ourInventory.getQuantity(productID));
+        System.out.println("Final quantity: " + ourInventory.getQuantity(productID) + "\n");
 
         update();
 
     }
+
+    public void updateWholeSaleCost(String productID) throws FileNotFoundException{
+        ourInventory = new Inventory();
+        double random = new Random().nextDouble();
+        random = random < 0 ? random * -1 : random;
+        System.out.println("Initial wholesale price: " + ourInventory.getWholePrice(productID) + "\n" + "random double is: " + random);
+        ourInventory.setWholeSalePrice(productID , random);
+        System.out.println("Final wholesale price: " + ourInventory.getWholePrice(productID) + "\n");
+
+        update();
+    }
+
+    public void updateSalePrice(String productID) throws FileNotFoundException{
+        ourInventory = new Inventory();
+        double random = new Random().nextDouble();
+        random = random < 0 ? random * -1 : random;
+        System.out.println("Initial sale price: " + ourInventory.getSalePrice(productID) + "\n" + "random double is: " + random);
+        ourInventory.setSalePrice(productID , random);
+        System.out.println("Final sale price: " + ourInventory.getSalePrice(productID));
+
+        update();
+
+    }
+
+    /*public void listProductsFromSupplier(String supplierID, String productID) throws FileNotFoundException{
+        ourInventory = new Inventory();
+        supplierID = ourInventory.getSupplierID(productID);
+        Iterator<Product> itr = ourInventory.iterator();
+        while(itr.hasNext()){
+            if(supplierID.equals(ourInventory.getSupplierID(productID))){
+
+            }
+        }
+    }*/
 
 
     private static void update() throws FileNotFoundException {
@@ -32,8 +66,5 @@ public class DataBaseSimulator {
             writer.println(itr.next());
         }
         writer.close();
-
     }
-
-
 }

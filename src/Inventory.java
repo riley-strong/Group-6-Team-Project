@@ -97,8 +97,11 @@ public class Inventory {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
+        DataBaseSimulator test = new DataBaseSimulator();
 
-        new DataBaseSimulator("RJAXQ1N1J200");
+        test.updateQuantity("RJAXQ1N1J200");
+        test.updateWholeSaleCost("RJAXQ1N1J200");
+        test.updateSalePrice("RJAXQ1N1J200");
 
     }
 
