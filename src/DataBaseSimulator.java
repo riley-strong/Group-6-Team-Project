@@ -9,7 +9,11 @@ public class DataBaseSimulator {
 
     private static Inventory ourInventory;
 
-
+    /**
+     * Finds the quantity and updates given the product ID
+     * @param productID
+     * @throws FileNotFoundException
+     */
     public void updateQuantity(String productID) throws FileNotFoundException {
         ourInventory = new Inventory();
         int random = new Random().nextInt();
@@ -19,9 +23,13 @@ public class DataBaseSimulator {
         System.out.println("Final quantity: " + ourInventory.getQuantity(productID) + "\n");
 
         update();
-
     }
 
+    /**
+     * Finds the wholesale price and updates given the Product ID.
+     * @param productID
+     * @throws FileNotFoundException
+     */
     public void updateWholeSaleCost(String productID) throws FileNotFoundException{
         ourInventory = new Inventory();
         double random = new Random().nextDouble();
@@ -33,6 +41,11 @@ public class DataBaseSimulator {
         update();
     }
 
+    /**
+     * Finds the sale price and updates given the product ID
+     * @param productID
+     * @throws FileNotFoundException
+     */
     public void updateSalePrice(String productID) throws FileNotFoundException{
         ourInventory = new Inventory();
         double random = new Random().nextDouble();
@@ -42,7 +55,6 @@ public class DataBaseSimulator {
         System.out.println("Final sale price: " + ourInventory.getSalePrice(productID));
 
         update();
-
     }
 
     /*public void listProductsFromSupplier(String supplierID, String productID) throws FileNotFoundException{
@@ -56,7 +68,10 @@ public class DataBaseSimulator {
         }
     }*/
 
-
+    /**
+     * Updates changes made to any product in the inventory csv file.
+     * @throws FileNotFoundException
+     */
     private static void update() throws FileNotFoundException {
         File file = new File("inventory_team6.csv");
         PrintWriter writer = new PrintWriter(file);
