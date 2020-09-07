@@ -64,8 +64,11 @@ public class Product {
         }
         return true;
     }
-    @Override
-    public String toString(){
-        return "";
+    @Override public String toString() {
+        return "" + getProductID() + ","
+                + quantity + ","
+                + getWholesale() + ","
+                + salePrice + ","
+                + getSupplierID();
     }
 }
