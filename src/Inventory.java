@@ -91,23 +91,13 @@ public class Inventory {
         }
     }// End setQuantity
 
-        
-
-
-
-
 
     public static void main(String[] args) throws FileNotFoundException {
         Inventory newInv = new Inventory();
         newInv.loadInventory();
+        new DataBaseSimulator("RJAXQ1N1J20O" , 5000);
+
+
     }
-
-
-
-
-
-
-
-
 
 }// End Class

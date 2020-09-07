@@ -40,14 +40,29 @@ public class Product {
     public void setSupplierId(String newName){
         supplierID = newName;
     }
-    public void setQuantity(int newQuant){
-        quantity = newQuant;
+    public boolean setQuantity(int newQuant){
+        if(newQuant < 0){
+            return false;
+        }else {
+            quantity = newQuant;
+        }
+        return true;
     }
-    public void setWholesale(double newWhole){
-        wholesale = newWhole;
+    public boolean setWholesale(double newWhole){
+        if(newWhole < 0.0){
+            return false;
+        }else {
+            wholesale = newWhole;
+        }
+        return true;
     }
-    public void setSalePrice(double newSale){
-        salePrice = newSale;
+    public boolean setSalePrice(double newSale){
+        if(newSale < 0.0){
+            return false;
+        }else {
+            salePrice = newSale;
+        }
+        return true;
     }
     @Override
     public String toString(){
