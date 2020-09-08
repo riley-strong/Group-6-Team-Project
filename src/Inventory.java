@@ -9,6 +9,10 @@ public class Inventory {
     private int wholesaleIndex = 2;
     private int salePriceIndex = 3;
     private int supplierIndex = 4;
+    // Category Columns for CSVwriter method
+    private int quantityCol = 1;
+    private int wholeSaleCol = 2;
+    private int salePriceCol = 3;
 
     // Set up reader
     private static final String fileName = "inventory_team6.csv";
@@ -76,6 +80,7 @@ public class Inventory {
             if(inventory.get(i).getProductID().equals(id))
                 inventory.get(i).setSalePrice(price);
         }
+        updateCSV(price, i + 1, salePriceCol);
     }// End setSalePrice
 
     public void setWholeSalePrice(String id, double price){
@@ -83,6 +88,7 @@ public class Inventory {
             if(inventory.get(i).getProductID().equals(id))
                 inventory.get(i).setWholesale(price);
         }
+        updateCSV(price, i + 1, wholeSaleCol);
     }// End setWholeSalePrice
 
     public void setQuantity(String id, int quantity){
@@ -90,6 +96,7 @@ public class Inventory {
             if(inventory.get(i).getProductID().equals(id))
                 inventory.get(i).setQuantity(quantity);
         }
+        updateCSV(quantity, i + 1, quantityCol);
     }// End setQuantity
 
     public Iterator<Product> iterator() {
@@ -105,7 +112,31 @@ public class Inventory {
 
     }
 
+    public static void updateCSV(double replace, int row, int col) throws IOException {
+
+        File inputFile = new File(fileName);
+
+// Read existing file
+        CSVReader reader = new CSVReader(new FileReader(inputFile), ',');
+        List<String[]> csvBody = reader.readAll();
+// Check column to determine double or int
+// get CSV row column  and replace with by using row and column
+        if(col == quantityCol) {
+            int newReplace = (int)replace
+            csvBody.get(row)[col] = newReplace;
+        }
+        else
+            csvBody.get(row)[col] = replace;
+        reader.close();
+
+
+// Write to CSV file which is open
+        CSVWriter writer = new CSVWriter(new FileWriter(inputFile), ',');
+        writer.writeAll(csvBody);
+        writer.flush();
+        writer.close();
+    }
 
 }// End Class
 
-// test
+
