@@ -37,8 +37,8 @@ class ProductTest {
 
     @org.junit.jupiter.api.Test
     void setWholesale_cost() {
-        test1.setWholesale(442.62);
-        assertEquals(test1.getWholesale(), 442.62);
+        test1.setWholesale(444.62);
+        assertEquals(test1.getWholesale(), 444.62);
     }
 
     @org.junit.jupiter.api.Test
@@ -49,7 +49,7 @@ class ProductTest {
     @org.junit.jupiter.api.Test
     void setSale_price() {
         test1.setSalePrice(728.01);
-        assertEquals(test1.getSalePrice(), 728.01);
+        assertEquals(test1.getSalePrice(),728.01);
     }
 
     @org.junit.jupiter.api.Test
