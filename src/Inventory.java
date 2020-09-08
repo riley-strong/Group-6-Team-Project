@@ -1,5 +1,6 @@
 import java.util.*;
 import java.io.*;
+import java.util.function.Consumer;
 
 public class Inventory {
     private LinkedList<Product> inventory;
@@ -91,25 +92,18 @@ public class Inventory {
         }
     }// End setQuantity
 
-        
-
-
-
-
-
-    public static void main(String[] args) throws FileNotFoundException {
-        //Inventory newInv = new Inventory();
-    	
-    	DataBaseSimulator db = new DataBaseSimulator("E3DW666QY2E7");
-    	
+    public Iterator<Product> iterator() {
+        return inventory.iterator();
     }
 
+    public static void main(String[] args) throws FileNotFoundException {
+        DataBaseSimulator test = new DataBaseSimulator();
 
+        test.updateQuantity("RJAXQ1N1J200");
+        test.updateWholeSaleCost("RJAXQ1N1J200");
+        test.updateSalePrice("RJAXQ1N1J200");
 
-
-
-
-
+    }
 
 
 }// End Class
