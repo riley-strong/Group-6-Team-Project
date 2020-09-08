@@ -37,6 +37,15 @@ public class Product {
         return salePrice;
     }
     // Setters
+
+    public void setProductID(String productID) {
+        this.productID = productID;
+    }
+
+    public void setSupplierID(String supplierID) {
+        this.supplierID = supplierID;
+    }
+
     public void setSupplierId(String newName){
         supplierID = newName;
     }
