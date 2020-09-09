@@ -58,16 +58,6 @@ public class DataBaseSimulator {
         update();
     }
 
-    /*public void listProductsFromSupplier(String supplierID, String productID) throws FileNotFoundException{
-        ourInventory = new Inventory();
-        supplierID = ourInventory.getSupplierID(productID);
-        Iterator<Product> itr = ourInventory.iterator();
-        while(itr.hasNext()){
-            if(supplierID.equals(ourInventory.getSupplierID(productID))){
-
-            }
-        }
-    }*/
 
     /**
      * Updates changes made to any product in the inventory csv file.
