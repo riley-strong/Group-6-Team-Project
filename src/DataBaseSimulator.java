@@ -3,68 +3,52 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Random;
-
+import java.util.Scanner;
 
 
 public class DataBaseSimulator {
 
-    private static Inventory ourInventory;
+    private Inventory ourInventory;
+    private static Scanner sc;
 
-    /**
-     * Finds the quantity and updates given the product ID
-     * @param productID
-     * @throws FileNotFoundException
-     */
-    public void updateQuantity(String productID) throws FileNotFoundException {
+    public DataBaseSimulator() throws FileNotFoundException {
         ourInventory = new Inventory();
-        int random = new Random().nextInt();
-        random = random < 0 ? random * -1 : random;
-        System.out.println("Initial quantity: " + ourInventory.getQuantity(productID) + "\n" + "random integer is: " + random);
-        ourInventory.setQuantity(productID, random);
-        System.out.println("Final quantity: " + ourInventory.getQuantity(productID) + "\n");
-
-        update();
     }
 
-    /**
-     * Finds the wholesale price and updates given the Product ID.
-     * @param productID
-     * @throws FileNotFoundException
-     */
-    public void updateWholeSaleCost(String productID) throws FileNotFoundException{
+    public Inventory getOurInventory() {
+        return ourInventory;
+    }
+
+// IGNORE THESE METHODS, MOST ARE IN INVENTORY.JAVA NOW!!
+
+/*
+    public void updateWholeSaleCost(String productID) throws FileNotFoundException {
         ourInventory = new Inventory();
         double random = new Random().nextDouble();
         random = random < 0 ? random * -1 : random;
-        System.out.println("Initial wholesale price: " + ourInventory.getWholePrice(productID) + "\n" + "random double is: " + random);
-        ourInventory.setWholeSalePrice(productID , random);
-        System.out.println("Final wholesale price: " + ourInventory.getWholePrice(productID) + "\n");
+        System.out.println("Initial wholesale price: " + ourInventory.getWholeSale(productID) + "\n" + "random double is: " + random);
+        ourInventory.setWholeSalePrice(productID, random);
+        System.out.println("Final wholesale price: " + ourInventory.getWholeSale(productID) + "\n");
 
         update();
     }
 
-    /**
-     * Finds the sale price and updates given the product ID
-     * @param productID
-     * @throws FileNotFoundException
-     */
-    public void updateSalePrice(String productID) throws FileNotFoundException{
+
+
+    public void updateSalePrice(String productID) throws FileNotFoundException {
         ourInventory = new Inventory();
         double random = new Random().nextDouble();
         random = random < 0 ? random * -1 : random;
         System.out.println("Initial sale price: " + ourInventory.getSalePrice(productID) + "\n" + "random double is: " + random);
-        ourInventory.setSalePrice(productID , random);
+        ourInventory.setSalePrice(productID, random);
         System.out.println("Final sale price: " + ourInventory.getSalePrice(productID));
 
         update();
     }
 
 
-    /**
-     * Updates changes made to any product in the inventory csv file.
-     * @throws FileNotFoundException
-     */
-    private static void update() throws FileNotFoundException {
-        File file = new File("inventory_team6.csv");
+    public void update() throws FileNotFoundException {
+        File file = new File("inventory_test.csv");
         PrintWriter writer = new PrintWriter(file);
         writer.println("product_id,quantity,wholesale_cost,sale_price,supplier_id");
         Iterator<Product> itr = ourInventory.iterator();
@@ -72,5 +56,5 @@ public class DataBaseSimulator {
             writer.println(itr.next());
         }
         writer.close();
-    }
+    }*/
 }
