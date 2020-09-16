@@ -14,30 +14,50 @@ public class InventoryApp {
     private JButton buyButton;
     private final Inventory inventory;
 
+    private String obtainProductID(){
+        String id = JOptionPane.showInputDialog("Enter product ID");
+        return id.toUpperCase();
+    }
+
+    private int obtainQuantity(){
+        int quantity = Integer.parseInt(JOptionPane.showInputDialog(null, "Enter Quantity"));
+        return quantity;
+    }
+
+    private double obtainWholeCost(){
+        double wholeCost = Double.parseDouble(JOptionPane.showInputDialog("Enter product whole sale cost"));
+        return wholeCost;
+    }
+
+    private Double obtainCost(){
+        double saleCost = Double.parseDouble(JOptionPane.showInputDialog("Enter product sale cost"));
+        return saleCost;
+    }
+
+    private String obtainSellerID(){
+        String sellerID = JOptionPane.showInputDialog("Enter seller id");
+        return sellerID.toUpperCase();
+    }
+
 
     public InventoryApp() throws FileNotFoundException, ClassNotFoundException {
         inventory = new Inventory();
         inventory.loadInventory();
 
-
-
         searchButton.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
-                String id = JOptionPane.showInputDialog("Enter product ID");
-
-                JOptionPane.showMessageDialog(null, "product info:\n" + inventory.searchProduct(id.toUpperCase()));
-
-
+                String productID = obtainProductID();
+                JOptionPane.showMessageDialog(null, "Product info:\n" + inventory.searchProduct(productID));
             }
         });
+
         sellButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String productID = JOptionPane.showInputDialog(null, "Enter Product ID");
-                int add = Integer.parseInt(JOptionPane.showInputDialog(null, "Enter Quantity to sell"));
-                inventory.decrementQuantity(productID.toUpperCase(), add);
+                String productID = obtainProductID();
+                int quantity = obtainQuantity();
+                inventory.decrementQuantity(productID, quantity);
                 try {
                     inventory.update();
                 } catch (FileNotFoundException fileNotFoundException) {
@@ -47,21 +67,17 @@ public class InventoryApp {
 
             }
         });
+
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String productId = JOptionPane.showInputDialog("Enter product ID");
-                String quantity = JOptionPane.showInputDialog("Enter product quantity");
-                String wholeCost = JOptionPane.showInputDialog("Enter product whole sale cost");
-                String saleCost = JOptionPane.showInputDialog("Enter product sale cost");
-                String sellerId = JOptionPane.showInputDialog("Enter seller id");
+                String productID = obtainProductID();
+                int quantity = obtainQuantity();
+                double wholeCost = obtainWholeCost();
+                double saleCost = obtainCost();
+                String sellerID = obtainSellerID();
 
-                Product newProduct = new Product();
-                newProduct.setProductID(productId.toUpperCase());
-                newProduct.setQuantity(Integer.parseInt(quantity));
-                newProduct.setWholesale(Double.parseDouble(wholeCost));
-                newProduct.setSalePrice(Double.parseDouble(saleCost));
-                newProduct.setSupplierID(sellerId.toUpperCase());
+                Product newProduct = new Product(productID, quantity, wholeCost, saleCost, sellerID);
 
                 inventory.addProduct(newProduct);
                 try {
@@ -70,40 +86,35 @@ public class InventoryApp {
                     fileNotFoundException.printStackTrace();
                 }
 
-                JOptionPane.showMessageDialog(null, "New Product has been Added!");
+                JOptionPane.showMessageDialog(null, "New Product " + productID +" has been Added!");
             }
         });
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String id = JOptionPane.showInputDialog(null, "Enter product ID for deletion");
-
-                inventory.deleteProduct(id.toUpperCase());
-
+                String productID = obtainProductID();
+                inventory.deleteProduct(productID);
                 try {
                     inventory.update();
                 } catch (FileNotFoundException fileNotFoundException) {
                     fileNotFoundException.printStackTrace();
                 }
-                JOptionPane.showMessageDialog(null, "Product has been deleted");
+                JOptionPane.showMessageDialog(null, "Product " + productID + " has been deleted");
 
             }
         });
         buyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String productID = JOptionPane.showInputDialog(null, "Enter Product ID");
-                int add = Integer.parseInt(JOptionPane.showInputDialog(null, "Enter Quantity to buy"));
-                inventory.incrementQuantity(productID.toUpperCase(), add);
+                String productID = obtainProductID();
+                int add = obtainQuantity();
+                inventory.incrementQuantity(productID, add);
                 try {
                     inventory.update();
                 } catch (FileNotFoundException fileNotFoundException) {
                     fileNotFoundException.printStackTrace();
                 }
-
-                JOptionPane.showMessageDialog(null, "quantity has been changed for product: " + productID);
-
-
+                JOptionPane.showMessageDialog(null, "Quantity has been changed for product: " + productID);
             }
         });
     }
