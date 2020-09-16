@@ -26,7 +26,7 @@ public class InventoryApp {
         return Double.parseDouble(JOptionPane.showInputDialog("Enter product whole sale cost"));
     }
 
-    private Double obtainSalePrice(){
+    private double obtainSalePrice(){
         return Double.parseDouble(JOptionPane.showInputDialog("Enter product sale price"));
     }
 
