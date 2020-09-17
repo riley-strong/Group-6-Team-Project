@@ -10,16 +10,19 @@ public class InventoryApp {
     private JButton sellButton;
     private JButton addButton;
     private JButton deleteButton;
-    private JTextField headerField;
     private JButton buyButton;
     private final Inventory inventory;
+
+    private void notFound(){
+        JOptionPane.showMessageDialog(null, "Error: Product Not Found");
+    }
 
     private String obtainProductID(){
         return JOptionPane.showInputDialog("Enter product ID").toUpperCase();
     }
 
     private int obtainQuantity(){
-        return Integer.parseInt(JOptionPane.showInputDialog(null, "Enter Quantity"));
+        return Integer.parseInt(JOptionPane.showInputDialog(null, "Enter quantity"));
     }
 
     private double obtainWholeCost(){
@@ -43,6 +46,10 @@ public class InventoryApp {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String productID = obtainProductID();
+                if (!inventory.contains(productID)) {
+                    notFound();
+                    return;
+                }
                 JOptionPane.showMessageDialog(null, "Product info:\n" + inventory.searchProduct(productID));
             }
         });
@@ -52,14 +59,21 @@ public class InventoryApp {
             public void actionPerformed(ActionEvent e) {
                 String productID = obtainProductID();
                 int quantity = obtainQuantity();
-                inventory.decrementQuantity(productID, quantity);
-                try {
-                    inventory.update();
-                } catch (FileNotFoundException fileNotFoundException) {
-                    fileNotFoundException.printStackTrace();
+                if (!inventory.contains(productID)) {
+                    notFound();
+                    return;
                 }
-                JOptionPane.showMessageDialog(null, "Quantity has changed for product: " + productID);
-
+                if (!inventory.quantityValidation(productID, quantity))
+                    JOptionPane.showMessageDialog(null, "Not enough inventory in stock");
+                else {
+                    inventory.decrementQuantity(productID, quantity);
+                    try {
+                        inventory.update();
+                    } catch (FileNotFoundException fileNotFoundException) {
+                        fileNotFoundException.printStackTrace();
+                    }
+                    JOptionPane.showMessageDialog(null, "Quantity has changed for product: " + productID);
+                }
             }
         });
 
@@ -67,27 +81,47 @@ public class InventoryApp {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String productID = obtainProductID();
+                if (productID.length() != 12) {
+                    JOptionPane.showMessageDialog(null, "Invalid product ID");
+                    return;
+                }
+                if (inventory.contains(productID)){
+                    JOptionPane.showMessageDialog(null, "Product already exists");
+                    return;
+                }
+
                 int quantity = obtainQuantity();
                 double wholeCost = obtainWholeCost();
                 double salePrice = obtainSalePrice();
-                String supplierID = obtainSupplierID();
-
-                Product newProduct = new Product(productID, quantity, wholeCost, salePrice, supplierID);
-
-                inventory.addProduct(newProduct);
-                try {
-                    inventory.update();
-                } catch (FileNotFoundException fileNotFoundException) {
-                    fileNotFoundException.printStackTrace();
+                if (wholeCost < 0 || salePrice < 0 || quantity < 0) {
+                    JOptionPane.showMessageDialog(null, "Cannot get parameters below 0");
+                    return;
                 }
 
-                JOptionPane.showMessageDialog(null, "New Product " + productID +" has been Added!");
+                String supplierID = obtainSupplierID();
+               if (supplierID.length() != 8) {
+                   JOptionPane.showMessageDialog(null, "Invalid supplier ID");
+                   return;
+               }
+                    Product newProduct = new Product(productID, quantity, wholeCost, salePrice, supplierID);
+                    inventory.addProduct(newProduct);
+                    try {
+                        inventory.update();
+                    } catch (FileNotFoundException fileNotFoundException) {
+                        fileNotFoundException.printStackTrace();
+                    }
+
+                    JOptionPane.showMessageDialog(null, "New product " + productID + " has been added");
             }
         });
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String productID = obtainProductID();
+                if (!inventory.contains(productID)) {
+                    notFound();
+                    return;
+                }
                 inventory.deleteProduct(productID);
                 try {
                     inventory.update();
@@ -102,6 +136,10 @@ public class InventoryApp {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String productID = obtainProductID();
+                if (!inventory.contains(productID)) {
+                    notFound();
+                    return;
+                }
                 int add = obtainQuantity();
                 inventory.incrementQuantity(productID, add);
                 try {

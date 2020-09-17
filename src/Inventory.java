@@ -59,6 +59,10 @@ public class Inventory {
         writer.close();
     }
 
+    public boolean contains(String id){
+        return inventoryMap.containsKey(id);
+    }
+
     public Product addProduct(Product product) {
         return inventoryMap.put(product.getProductID(), product);
     }
@@ -75,6 +79,12 @@ public class Inventory {
         return inventoryMap.get(productID).toString();
     }
 
+    public boolean quantityValidation(String id, int quantity){
+        if ((inventoryMap.get(id).getQuantity() - quantity) <= 0)
+            return false;
+        return true;
+
+    }
 
     public void incrementQuantity(String productID, int amount) {
         Product product = inventoryMap.get(productID);
