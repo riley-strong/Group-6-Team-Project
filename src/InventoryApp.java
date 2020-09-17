@@ -58,11 +58,11 @@ public class InventoryApp {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String productID = obtainProductID();
-                int quantity = obtainQuantity();
-                if (!inventory.contains(productID)) {
+                if ((!inventory.contains(productID)) || inventory.isEmpty()) {
                     notFound();
                     return;
                 }
+                int quantity = obtainQuantity();
                 if (!inventory.quantityValidation(productID, quantity))
                     JOptionPane.showMessageDialog(null, "Not enough inventory in stock");
                 else {
