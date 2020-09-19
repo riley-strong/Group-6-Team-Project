@@ -66,6 +66,10 @@ public class Inventory {
         return inventoryMap.isEmpty();
     }
 
+    public boolean isEmpty(){
+        return inventoryMap.isEmpty();
+    }
+
     public Product addProduct(Product product) {
         return inventoryMap.put(product.getProductID(), product);
     }
