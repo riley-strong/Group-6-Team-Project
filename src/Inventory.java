@@ -62,6 +62,9 @@ public class Inventory {
     public boolean contains(String id){
         return inventoryMap.containsKey(id);
     }
+    public boolean isEmpty(){
+        return inventoryMap.isEmpty();
+    }
 
     public boolean isEmpty(){
         return inventoryMap.isEmpty();
