@@ -18,6 +18,10 @@ public class InventoryApp {
 
     }
 
+    private void invalid() {
+        JOptionPane.showMessageDialog(null, "Error: Invalied input ");
+
+    }
 
     private String obtainProductID() {
         String s = null;
@@ -83,7 +87,7 @@ public class InventoryApp {
                     notFound();
                     return;
                 }
-                JOptionPane.showMessageDialog(null, "Product info:\n" + inventory.searchProduct(productID));
+                JOptionPane.showMessageDialog(null, "        Product info:\n" + inventory.searchProduct(productID));
 
             }
         });
@@ -97,6 +101,10 @@ public class InventoryApp {
                     return;
                 }
                 int quantity = obtainQuantity();
+                if (quantity <=0){
+                    invalid();
+                    return;
+                }
                 if (!inventory.quantityValidation(productID, quantity))
                     JOptionPane.showMessageDialog(null, "Not enough inventory in stock");
                 else {
@@ -106,7 +114,7 @@ public class InventoryApp {
                     } catch (FileNotFoundException fileNotFoundException) {
                         fileNotFoundException.printStackTrace();
                     }
-                    JOptionPane.showMessageDialog(null, "Quantity has changed for product: " + productID);
+                    JOptionPane.showMessageDialog(null, "Product sold: " + productID);
                 }
             }
         });
@@ -183,6 +191,10 @@ public class InventoryApp {
                     return;
                 }
                 int add = obtainQuantity();
+                if (add <=0){
+                    invalid();
+                            return;
+                }
                 inventory.incrementQuantity(productID, add);
                 try {
                     inventory.update();
