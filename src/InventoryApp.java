@@ -30,12 +30,21 @@ public class InventoryApp {
     }
 
     private int obtainQuantity() {
-        Integer i = null;
+        String input = JOptionPane.showInputDialog("Enter quantity");
+        Integer quantity = null;
+
+        for(int i=0; i<input.length(); i++){
+            char ch = input.charAt(i);
+            if(Character.isLetter(ch) || ch == ' ') {
+                JOptionPane.showMessageDialog(null, "Invalid quantity!");
+            } break;
+        }
         try {
-            i = Integer.parseInt(JOptionPane.showInputDialog(null, "Enter quantity"));
+            quantity = Integer.parseInt(input);
         } catch (NullPointerException ignore) {
+
         } finally {
-            return i;
+            return quantity;
         }
     }
 
