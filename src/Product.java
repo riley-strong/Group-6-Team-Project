@@ -72,10 +72,10 @@ public class Product {
         return true;
     }
     @Override public String toString() {
-        return "" + getProductID() + ","
-                + quantity + ","
-                + getWholesale() + ","
-                + salePrice + ","
-                + getSupplierID();
+        return "Product Id: " + getProductID() + ",\n"
+                + "Quantity: " + quantity + ",\n"
+                + "WholeSale Price: "+getWholesale() + ",\n"
+                +"Sale Price: "+ salePrice + ",\n"
+                +"Supplier ID: "+ getSupplierID();
     }
 }
