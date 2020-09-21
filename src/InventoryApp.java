@@ -18,7 +18,7 @@ public class InventoryApp {
 
     }
 
-    private void invalied() {
+    private void invalid() {
         JOptionPane.showMessageDialog(null, "Error: Invalied input ");
 
     }
@@ -102,7 +102,7 @@ public class InventoryApp {
                 }
                 int quantity = obtainQuantity();
                 if (quantity <=0){
-                    invalied();
+                    invalid();
                     return;
                 }
                 if (!inventory.quantityValidation(productID, quantity))
@@ -192,7 +192,7 @@ public class InventoryApp {
                 }
                 int add = obtainQuantity();
                 if (add <=0){
-                    invalied();
+                    invalid();
                             return;
                 }
                 inventory.incrementQuantity(productID, add);
