@@ -19,7 +19,7 @@ public class InventoryApp {
     }
 
     private void invalid() {
-        JOptionPane.showMessageDialog(null, "Error: Invalied input ");
+        JOptionPane.showMessageDialog(null, "Error: Invalid input ");
 
     }
 
