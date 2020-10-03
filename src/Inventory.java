@@ -59,6 +59,15 @@ public class Inventory {
         writer.close();
     }
 
+    public Object[][] toArray() {
+        Object[][] data = new Object[inventoryMap.size()][5];
+        Iterator<Product> product = inventoryMap.values().iterator();
+        for (int i = 0; i < inventoryMap.size(); i++) {
+            data[i] = product.next().toArray();
+        }
+        return data;
+    }
+
     public boolean contains(String id){
         return inventoryMap.containsKey(id);
     }
