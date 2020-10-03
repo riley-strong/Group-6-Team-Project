@@ -3,6 +3,7 @@ public class Product {
     private int quantity;
     private double wholesale; private double salePrice;
     private String supplierID; private String productID;
+    public static final String[] headers = new String[]{"product_id","quantity","wholesale_cost","sale_price","supplier_id"};
 
     public Product(){
         productID = "NA";
@@ -19,6 +20,11 @@ public class Product {
         salePrice = initSalePrice;
         supplierID = initSupplierID;
     }
+
+    public Object[] toArray() {
+        return new Object[]{productID, quantity, wholesale, salePrice, supplierID};
+    }
+
     // Getters
     public String getProductID(){
         return productID;
