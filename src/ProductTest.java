@@ -1,3 +1,8 @@
+/*
+ * For the purpose of MSU Denver, Fall 2020, CS 3250-52681 course with Dr. Geinitz
+ * Contributors include Hector Cruz; Riley Strong; Firew Handiso; Busra Ozdemir; Adam Wojdyla; Dakota Miller
+ */
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ProductTest {

@@ -1,3 +1,8 @@
+/*
+ * For the purpose of MSU Denver, Fall 2020, CS 3250-52681 course with Dr. Geinitz
+ * Contributors include Hector Cruz; Riley Strong; Firew Handiso; Busra Ozdemir; Adam Wojdyla; Dakota Miller
+ */
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -272,7 +277,7 @@ public class InventoryApp {
 
 
         JFrame frame = new JFrame("Database APP");
-        frame.setMinimumSize(new Dimension(700, 350));
+        frame.setMinimumSize(new Dimension(350, 350));
         frame.setContentPane(new InventoryApp().PanelMain);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setBackground(Color.BLUE);
