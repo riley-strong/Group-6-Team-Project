@@ -100,150 +100,126 @@ public class InventoryApp {
         inventory.loadInventory();
 
         setButtonFlavor(searchButton);
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String productID = obtainProductID();
+        searchButton.addActionListener(e -> {
+            String productID = obtainProductID();
 
-                if (!inventory.contains(productID)) {
-                    notFound();
-                    return;
-                }
-                JOptionPane.showMessageDialog(null, "        Product info:\n" + inventory.searchProduct(productID));
-
+            if (!inventory.contains(productID)) {
+                notFound();
+                return;
             }
+            JOptionPane.showMessageDialog(null, "        Product info:\n" + inventory.searchProduct(productID));
+
         });
+
         setButtonFlavor(sellButton);
-
-        sellButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String productID = obtainProductID();
-                if ((!inventory.contains(productID)) || inventory.isEmpty()) {
-                    notFound();
-                    return;
-                }
-                int quantity = obtainQuantity();
-                if (quantity <=0){
-                    invalid();
-                    return;
-                }
-                if (!inventory.quantityValidation(productID, quantity))
-                    JOptionPane.showMessageDialog(null, "Not enough inventory in stock");
-                else {
-                    inventory.decrementQuantity(productID, quantity);
-                    try {
-                        inventory.update();
-                    } catch (FileNotFoundException fileNotFoundException) {
-                        fileNotFoundException.printStackTrace();
-                    }
-                    JOptionPane.showMessageDialog(null, "Product sold: " + productID);
-                }
+        sellButton.addActionListener(e -> {
+            String productID = obtainProductID();
+            if ((!inventory.contains(productID)) || inventory.isEmpty()) {
+                notFound();
+                return;
             }
-        });
-        setButtonFlavor(addButton);
-
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                String productID = null;
-                productID = obtainProductID();
-
-                if (productID == null) {
-                    JOptionPane.showMessageDialog(null, "Error Product does not exist!");
-                    return;
-                }
-
-                if (productID.length() != 12) {
-                    JOptionPane.showMessageDialog(null, "Invalid product ID");
-                    return;
-                }
-                if (inventory.contains(productID)) {
-                    JOptionPane.showMessageDialog(null, "Product already exists");
-                    return;
-                }
-
-                int quantity = obtainQuantity();
-                double wholeCost = obtainWholeCost();
-                double salePrice = obtainSalePrice();
-                if (wholeCost < 0 || salePrice < 0 || quantity < 0) {
-                    JOptionPane.showMessageDialog(null, "Cannot get parameters below 0");
-                    return;
-                }
-
-                String supplierID = obtainSupplierID();
-                if (supplierID.length() != 8) {
-                    JOptionPane.showMessageDialog(null, "Invalid supplier ID");
-                    return;
-                }
-                Product newProduct = new Product(productID, quantity, wholeCost, salePrice, supplierID);
-                inventory.addProduct(newProduct);
+            int quantity = obtainQuantity();
+            if (quantity <=0){
+                invalid();
+                return;
+            }
+            if (!inventory.quantityValidation(productID, quantity))
+                JOptionPane.showMessageDialog(null, "Not enough inventory in stock");
+            else {
+                inventory.decrementQuantity(productID, quantity);
                 try {
                     inventory.update();
                 } catch (FileNotFoundException fileNotFoundException) {
                     fileNotFoundException.printStackTrace();
                 }
-
-                JOptionPane.showMessageDialog(null, "New product " + productID + " has been added");
+                JOptionPane.showMessageDialog(null, "Product sold: " + productID);
             }
+        });
+
+        setButtonFlavor(addButton);
+        addButton.addActionListener(e -> {
+
+            String productID = null;
+            productID = obtainProductID();
+
+            if (productID == null) {
+                JOptionPane.showMessageDialog(null, "Error Product does not exist!");
+                return;
+            }
+
+            if (productID.length() != 12) {
+                JOptionPane.showMessageDialog(null, "Invalid product ID");
+                return;
+            }
+            if (inventory.contains(productID)) {
+                JOptionPane.showMessageDialog(null, "Product already exists");
+                return;
+            }
+
+            int quantity = obtainQuantity();
+            double wholeCost = obtainWholeCost();
+            double salePrice = obtainSalePrice();
+            if (wholeCost < 0 || salePrice < 0 || quantity < 0) {
+                JOptionPane.showMessageDialog(null, "Cannot get parameters below 0");
+                return;
+            }
+
+            String supplierID = obtainSupplierID();
+            if (supplierID.length() != 8) {
+                JOptionPane.showMessageDialog(null, "Invalid supplier ID");
+                return;
+            }
+            Product newProduct = new Product(productID, quantity, wholeCost, salePrice, supplierID);
+            inventory.addProduct(newProduct);
+            try {
+                inventory.update();
+            } catch (FileNotFoundException fileNotFoundException) {
+                fileNotFoundException.printStackTrace();
+            }
+
+            JOptionPane.showMessageDialog(null, "New product " + productID + " has been added");
         });
 
         setButtonFlavor(deleteButton);
-
-        deleteButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String productID = obtainProductID();
-                if (!inventory.contains(productID)) {
-                    notFound();
-                    return;
-                }
-                inventory.deleteProduct(productID);
-                try {
-                    inventory.update();
-                } catch (FileNotFoundException fileNotFoundException) {
-                    fileNotFoundException.printStackTrace();
-                }
-                JOptionPane.showMessageDialog(null, "Product " + productID + " has been deleted");
-
+        deleteButton.addActionListener(e -> {
+            String productID = obtainProductID();
+            if (!inventory.contains(productID)) {
+                notFound();
+                return;
             }
+            inventory.deleteProduct(productID);
+            try {
+                inventory.update();
+            } catch (FileNotFoundException fileNotFoundException) {
+                fileNotFoundException.printStackTrace();
+            }
+            JOptionPane.showMessageDialog(null, "Product " + productID + " has been deleted");
+
         });
-        setButtonFlavor(buyButton);
 
-        buyButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String productID = obtainProductID();
-                if (!inventory.contains(productID)) {
-                    notFound();
-                    return;
-                }
-                int add = obtainQuantity();
-                if (add <=0){
-                    invalid();
-                            return;
-                }
-                inventory.incrementQuantity(productID, add);
-                try {
-                    inventory.update();
-                } catch (FileNotFoundException fileNotFoundException) {
-                    fileNotFoundException.printStackTrace();
-                }
-                JOptionPane.showMessageDialog(null, "Quantity has been changed for product: " + productID);
+        setButtonFlavor(buyButton);
+        buyButton.addActionListener(e -> {
+            String productID = obtainProductID();
+            if (!inventory.contains(productID)) {
+                notFound();
+                return;
             }
+            int add = obtainQuantity();
+            if (add <=0){
+                invalid();
+                        return;
+            }
+            inventory.incrementQuantity(productID, add);
+            try {
+                inventory.update();
+            } catch (FileNotFoundException fileNotFoundException) {
+                fileNotFoundException.printStackTrace();
+            }
+            JOptionPane.showMessageDialog(null, "Quantity has been changed for product: " + productID);
         });
 
         setButtonFlavor(displayButton);
-
-        displayButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showTable(inventory.toArray(), Product.headers);
-
-
-            }
-        });
+        displayButton.addActionListener(e -> showTable(inventory.toArray(), Product.headers));
     }
 
     private void setButtonFlavor(JButton button) {
@@ -272,10 +248,7 @@ public class InventoryApp {
         tableFrame.setVisible(true);
     }
 
-    public static void main(String[] args) throws FileNotFoundException, ClassNotFoundException, SQLException {
-        //Credentials.databaseLogin();
-
-
+    public static void main(String[] args) throws FileNotFoundException, ClassNotFoundException {
         JFrame frame = new JFrame("Database APP");
         frame.setMinimumSize(new Dimension(350, 350));
         frame.setContentPane(new InventoryApp().PanelMain);
@@ -284,10 +257,5 @@ public class InventoryApp {
         frame.setLocationRelativeTo(null);
         frame.pack();
         frame.setVisible(true);
-
-
-
-
     }
-
 }

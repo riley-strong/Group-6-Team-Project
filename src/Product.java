@@ -58,15 +58,13 @@ public class Product {
      *
      * @return      Output is an array version of an individual Product object
      */
-    public Object[] toArray() {
-        return new Object[]{productID, quantity, wholesale, salePrice, supplierID};
-    }
+    public Object[] toArray() { return new Object[]{productID, quantity, wholesale, salePrice, supplierID}; }
 
 
     /**
      * Returns object-specific product ID (12-digit alphanumeric).
      *
-     * @return  Returns product object's Product ID instance variable
+     * @return      Returns product object's Product ID instance variable
      */
     public String getProductID() { return productID; }
 
@@ -75,9 +73,7 @@ public class Product {
      *
      * @param productID     a valid product ID (as of Oct 2020, 12-digit alphanumeric)
      */
-    public void setProductID(String productID) {
-        this.productID = productID.toUpperCase();
-    }
+    public void setProductID(String productID) { this.productID = productID.toUpperCase(); }
 
 
     /**
@@ -85,28 +81,21 @@ public class Product {
      *
      * @return      Returns product object's quantity instance variable
      */
-    public int getQuantity() {
-        return quantity;
-    }
+    public int getQuantity() { return quantity; }
 
     /**
      * Assumes valid input passed in, sets quantity instance variable for a Product object
      *
      * @param newQuant     a valid quantity (as of Oct 2020, integer >= 0)
      */
-    public boolean setQuantity(int newQuant) {
-        if (newQuant < 0) { return false; }
-        else { this.quantity = newQuant; return true; }
-    }
+    public void setQuantity(int newQuant) { this.quantity = newQuant; }
 
     /**
      * Returns object-specific wholesale price (should be double >= 0.00).
      *
      * @return      Returns product object's wholesale price instance variable
      */
-    public double getWholesale() {
-        return wholesale;
-    }
+    public double getWholesale() { return wholesale; }
 
     /**
      * Assumes valid input passed in, sets wholesale price instance variable for a Product object
@@ -121,19 +110,14 @@ public class Product {
      *
      * @return      Returns product object's sale price instance variable
      */
-    public double getSalePrice() {
-        return salePrice;
-    }
+    public double getSalePrice() { return salePrice; }
 
     /**
      * Assumes valid input passed in, sets sale price instance variable for a Product object
      *
      * @param newSale     a valid sale price (as of Oct 2020, double >= 0.00)
      */
-    public boolean setSalePrice(double newSale) {
-        if (newSale < 0.0) { return false; }
-        else { this.salePrice = newSale; return true;  }
-    }
+    public void setSalePrice(double newSale) { this.salePrice = newSale; }
 
 
     /**
@@ -148,14 +132,14 @@ public class Product {
      *
      * @param supplierID     a valid supplier ID (as of Oct 2020, 8-digit alphanumeric)
      */
-    public void setSupplierID(String supplierID) { this.supplierID = supplierID.toUpperCase();
-    }
+    public void setSupplierID(String supplierID) { this.supplierID = supplierID.toUpperCase(); }
 
 
     /**
      * Used to validate product ID is a valid Product ID; assumes String input
      *
      * @param productID     desired input is length 12 alphanumeric
+     * @return      True/False result of validity check
      */
     public boolean validProductCheck(String productID)
     {
@@ -186,6 +170,7 @@ public class Product {
      * Used to validate quantity is a valid quantity; assumes int input
      *
      * @param quantity     desired input is positive integer
+     * @return      True/False result of validity check
      */
     public boolean validQuantityCheck(int quantity)
     {
@@ -198,6 +183,7 @@ public class Product {
      * Used to validate wholesale price is a valid wholesale price; assumes double input
      *
      * @param wholePrice     desired input is double formatted 0.00
+     * @return      True/False result of validity check
      */
     public boolean validWholesaleCheck(double wholePrice)
     {
@@ -210,6 +196,7 @@ public class Product {
      * Used to validate sale price is a valid sale price; assumes double input
      *
      * @param salePrice     desired input is double formatted 0.00
+     * @return      True/False result of validity check
      */
     public boolean validSaleCheck(double salePrice)
     {
@@ -222,6 +209,7 @@ public class Product {
      * Used to validate supplier ID is a valid Supplier ID; assumes String input
      *
      * @param supplierID     desired input is length 8 alphanumeric
+     * @return      True/False result of validity check
      */
     public boolean validSupplierCheck(String supplierID)
     {

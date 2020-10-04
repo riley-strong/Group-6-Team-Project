@@ -6,13 +6,13 @@
 import java.util.*;
 import java.io.*;
 
+
 /**
  * Inventory class is used to establish data structure to store collection of Product objects.
  */
 public class Inventory {
     // Sets up filereader; file path must match exactly (parallel to src folder)
     private static final String fileName = "inventory_team6.csv";
-    public static Scanner sc = new Scanner(System.in);
 
     //Hash map used as data structure to store collection of Product objects
     private HashMap<String, Product> inventoryMap;
@@ -29,9 +29,7 @@ public class Inventory {
      *
      * @throws FileNotFoundException        Used to capture bad execution due to poor file path
      */
-    public Inventory() throws FileNotFoundException {
-        loadInventory();
-    }
+    public Inventory() throws FileNotFoundException { loadInventory(); }
 
 
     /**
@@ -42,13 +40,13 @@ public class Inventory {
      */
     public void loadInventory() throws FileNotFoundException {
         //scanner object created to gather file input
-        Scanner sc = new Scanner(new File(fileName));
+        Scanner input = new Scanner(new File(fileName));
         inventoryMap = new HashMap<>();
 
         // iterates through each line of .csv file, reading & storing input into Hash Map
-        sc.nextLine();
-        while (sc.hasNext()) {
-            String[] categories = sc.nextLine().split(",");
+        input.nextLine();
+        while (input.hasNext()) {
+            String[] categories = input.nextLine().split(",");
             String prodID = categories[prodIDIndex];
             int quantity = Integer.parseInt(categories[quantityIndex]);
             double wholesale = Double.parseDouble(categories[wholesaleIndex]);
@@ -59,7 +57,7 @@ public class Inventory {
             inventoryMap.put(prodID, newProduct);
         }
         //file reading is complete; closes Scanner object to ensure no memory leak
-        sc.close();
+        input.close();
     }
 
 
@@ -74,7 +72,7 @@ public class Inventory {
         writer.println("product_id,quantity,wholesale_cost,sale_price,supplier_id");
         Iterator<Product> itr = iterator();
         while (itr.hasNext()) {
-            writer.println(itr.next());
+            writer.print(itr.next());
         }
         writer.close();
     }
@@ -101,9 +99,7 @@ public class Inventory {
      * @param productID    Product ID (unique identifier of a Product object)
      * @return      True/False result of if provided Product ID currently exists in data structure
      */
-    public boolean contains(String productID){
-        return inventoryMap.containsKey(productID);
-    }
+    public boolean contains(String productID){ return inventoryMap.containsKey(productID); }
 
 
     /**
@@ -111,29 +107,22 @@ public class Inventory {
      *
      * @return      True/False determination of if project data structure has any elements
      */
-    public boolean isEmpty(){
-        return inventoryMap.isEmpty();
-    }
+    public boolean isEmpty(){ return inventoryMap.isEmpty(); }
 
 
     /**
      * Adds a new Product object to the data structure based on Product ID (unique identifier)
      *
      * @param product   product object
-     * @return          Previous value associated with Product Object of same Product ID; null if DNE
      */
-    public Product addProduct(Product product) { return inventoryMap.put(product.getProductID(), product); }
+    public void addProduct(Product product) { inventoryMap.put(product.getProductID(), product); }
 
     /**
      * Accepts string parameter for Product ID; locates the Product associated & removes it from data structure
      *
      * @param productID 12-character alphanumeric String uniquely identifying Product object
-     * @return      returns Product object if one existed; otherwise, returns null
      */
-    public Product deleteProduct(String productID) {
-        Product p = inventoryMap.get(productID);
-        return inventoryMap.remove(p.getProductID());
-    }
+    public void deleteProduct(String productID) { inventoryMap.remove(inventoryMap.get(productID)); }
 
     /**
      * Searches for Product object within data structure
@@ -144,23 +133,23 @@ public class Inventory {
     public String searchProduct(String productID) { return inventoryMap.get(productID).toString(); }
 
     /**
+     * Inventory validation to ensure enough product is in stock to conduct the transaction
      *
-     *
-     * @param productID    12-character alphanumeric String uniquely identifying Product object
-     * @param quantity  Desired quantity to sell
+     * @param productID 12-character alphanumeric String uniquely identifying Product object
+     * @param desiredQuantity  Desired quantity to sell
      * @return      True/False result if the quantity sell operation is possible to be performed (won't go negative)
      */
-    public boolean quantityValidation(String productID, int quantity){
-        if ((inventoryMap.get(productID).getQuantity() - quantity) < 0)
+    public boolean quantityValidation(String productID, int desiredQuantity){
+        if ((inventoryMap.get(productID).getQuantity() - desiredQuantity) < 0)
             return false;
         return true;
     }
 
     /**
+     * Increases quantity (purchase from supplier) for a specific product
      *
-     *
-     * @param productID
-     * @param amount
+     * @param productID 12-character alphanumeric String uniquely identifying Product object
+     * @param amount    integer amount to increase inventory supply
      */
     public void incrementQuantity(String productID, int amount) {
         Product product = inventoryMap.get(productID);
@@ -168,10 +157,10 @@ public class Inventory {
     }
 
     /**
+     * Decreases quantity (purchase from customer) for a specific product
      *
-     *
-     * @param productID
-     * @param amount
+     * @param productID 12-character alphanumeric String uniquely identifying Product object
+     * @param amount    integer amount to decrease inventory supply
      */
     public void decrementQuantity(String productID, int amount) {
         Product product = inventoryMap.get(productID);
@@ -180,84 +169,58 @@ public class Inventory {
 
 
     /**
+     * Returns current quantity of product in inventory
      *
-     *
-     * @param productID
-     * @return
+     * @param productID 12-character alphanumeric String uniquely identifying Product object
+     * @return  integer amount representing current inventory supply of a specific Product
      */
-    public int getQuantity(String productID) {
-        if (inventoryMap.get(productID) == null) {
-            throw new NullPointerException();
-        }
-        return inventoryMap.get(productID).getQuantity();
-    }
+    public int getQuantity(String productID) { return inventoryMap.get(productID).getQuantity(); }
 
     /**
+     * Returns current wholesale price of product in inventory
      *
-     *
-     * @param productID
-     * @return
+     * @param productID 12-character alphanumeric String uniquely identifying Product object
+     * @return  double amount representing current wholesale price of a specific product
      */
-    public double getSalePrice(String productID) {
-        if (inventoryMap.get(productID) == null) {
-            throw new NullPointerException();
-        }
-        return inventoryMap.get(productID).getSalePrice();
-    }
+    public double getWholeSale(String productID) { return inventoryMap.get(productID).getWholesale(); }
 
     /**
+     * Returns current sale price of product in inventory
      *
-     *
-     * @param productID
-     * @return
+     * @param productID 12-character alphanumeric String uniquely identifying Product object
+     * @return  double amount representing current sale price of a specific product
      */
-    public double getWholeSale(String productID) {
-        if (inventoryMap.get(productID) == null) {
-            throw new NullPointerException();
-        }
-        return inventoryMap.get(productID).getWholesale();
-    }
+    public double getSalePrice(String productID) { return inventoryMap.get(productID).getSalePrice(); }
+
 
     /**
+     * Sets sale price for a specific Product object
      *
-     *
-     * @param productID
+     * @param productID 12-character alphanumeric String uniquely identifying Product object
      * @param price
      */
-    public void setSalePrice(String productID, double price) {
-        inventoryMap.get(productID).setSalePrice(price);
-
-    }
+    public void setSalePrice(String productID, double price) { inventoryMap.get(productID).setSalePrice(price); }
 
     /**
+     * Sets wholesale price for a specific Product object
      *
-     *
-     * @param productID
+     * @param productID 12-character alphanumeric String uniquely identifying Product object
      * @param price
      */
-    public void setWholeSalePrice(String productID, double price) {
-        inventoryMap.get(productID).setWholesale(price);
-    }
+    public void setWholeSalePrice(String productID, double price) { inventoryMap.get(productID).setWholesale(price); }
 
     /**
+     * Sets quantity for a specific Product object
      *
-     *
-     * @param productID
+     * @param productID 12-character alphanumeric String uniquely identifying Product object
      * @param quantity
      */
-    public void setQuantity(String productID, int quantity) {
-        inventoryMap.get(productID).setQuantity(quantity);
-
-    }
+    public void setQuantity(String productID, int quantity) { inventoryMap.get(productID).setQuantity(quantity); }
 
     /**
-     *
+     * Used in the update() method to cycle through Java data structure & iterate for storage back into .csv
      *
      * @return
      */
-    public Iterator<Product> iterator() {
-        return inventoryMap.values().iterator();
-    }
-
-
+    public Iterator<Product> iterator() { return inventoryMap.values().iterator(); }
 }
