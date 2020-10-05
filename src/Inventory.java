@@ -6,7 +6,6 @@
 import java.util.*;
 import java.io.*;
 
-
 /**
  * Inventory class is used to establish data structure to store collection of Product objects.
  */
@@ -29,6 +28,7 @@ public class Inventory {
      *
      * @throws FileNotFoundException        Used to capture bad execution due to poor file path
      */
+
     public Inventory() throws FileNotFoundException { loadInventory(); }
 
 
