@@ -56,7 +56,6 @@ public class InventoryApp {
             s = JOptionPane.showInputDialog("Enter Product ID").toUpperCase();
         } catch (NullPointerException ignore) {
         } finally {
-            System.out.println("obtain product successful: " + s);
             return s;
         }
     }
