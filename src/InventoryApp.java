@@ -313,7 +313,7 @@ public class InventoryApp {
         dtm.setDataVector(dataVector, headers);
         tv.setModel(dtm);
         JScrollPane scrollPane = new JScrollPane(tv);
-        tableLable = new JLabel( "message");
+        tableLable = new JLabel();
         JPanel panel = new JPanel();
         panel.add(scrollPane);
         panel.add(tableLable);
