@@ -72,7 +72,7 @@ public class Inventory {
         writer.println("product_id,quantity,wholesale_cost,sale_price,supplier_id");
         Iterator<Product> itr = iterator();
         while (itr.hasNext()) {
-            writer.print(itr.next());
+            writer.println(itr.next());
         }
         writer.close();
     }

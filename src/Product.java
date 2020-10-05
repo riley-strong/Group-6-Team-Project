@@ -242,10 +242,10 @@ public class Product {
      * @return      Returns formatted instance variables of a Product object.
      */
     @Override public String toString() {
-        return "Product ID: " + getProductID() + ",\n"
-                + "Quantity: " + getQuantity() + ",\n"
-                + "WholeSale Price: "+getWholesale() + ",\n"
-                +"Sale Price: "+ getSalePrice() + ",\n"
-                +"Supplier ID: "+ getSupplierID();
+        return getProductID() + ","
+                + getQuantity() + ","
+                + getWholesale() + ","
+                + getSalePrice() + ","
+                + getSupplierID();
     }
 }
