@@ -122,7 +122,9 @@ public class Inventory {
      *
      * @param productID 12-character alphanumeric String uniquely identifying Product object
      */
-    public void deleteProduct(String productID) { inventoryMap.remove(inventoryMap.get(productID)); }
+    public void deleteProduct(String productID) {
+        inventoryMap.remove(productID);
+    }
 
     /**
      * Searches for Product object within data structure
