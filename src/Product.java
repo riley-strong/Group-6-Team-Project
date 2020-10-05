@@ -237,7 +237,7 @@ public class Product {
     }
 
     /**
-     * Returns String representation of a Product object in a human-readable form.
+     * Returns String representation of a Product object in a csv compatible form.
      *
      * @return      Returns formatted instance variables of a Product object.
      */
@@ -248,4 +248,21 @@ public class Product {
                 + getSalePrice() + ","
                 + getSupplierID();
     }
+
+    /**
+     * 0: Returns String representation of a Product object in a human-readable form.
+     *
+     * @param x       integer value to represent various desired toString() implementations
+     * @return      Returns formatted instance variables of a Product object.
+     */
+    public String toString(int x) {
+        if (x == 0) {
+            return "Product ID: " + getProductID() + ",\n"
+                    + "Quantity: " + quantity + ",\n"
+                    + "WholeSale Price: " + getWholesale() + ",\n"
+                    + "Sale Price: " + salePrice + ",\n"
+                    + "Supplier ID: " + getSupplierID();
+        }
+        else return "Nothing built here yet.";
+        }
 }
