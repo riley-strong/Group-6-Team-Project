@@ -132,7 +132,7 @@ public class Inventory {
      * @param productID 12-character alphanumeric String uniquely identifying Product object
      * @return      returns String representation of Product object
      */
-    public String searchProduct(String productID) { return inventoryMap.get(productID).toString(); }
+    public String searchProduct(String productID) { return inventoryMap.get(productID).toString(0); }
 
     /**
      * Inventory validation to ensure enough product is in stock to conduct the transaction
