@@ -103,12 +103,12 @@ public class MailService {
                     if(emailInput[0].equals("buy")) {
                         inventory.decrementQuantity(emailInput[1], Integer.parseInt(emailInput[2].trim()));
                         inventory.update();
-                        sendConfirmation(message.getFrom()[0].toString(),"Thank you for buying"  + emailInput[1]);
+                        sendConfirmation(message.getFrom()[0].toString(),"Thank you for buying: "  + emailInput[1]);
                     }
                     else {
                         inventory.incrementQuantity(emailInput[1], Integer.parseInt(emailInput[2].trim()));
                         inventory.update();
-                        sendConfirmation(message.getFrom()[0].toString(),"Thank you for Selling "  + emailInput[1]);
+                        sendConfirmation(message.getFrom()[0].toString(),"Thank you for selling: "  + emailInput[1]);
                     }
                 }
             }
