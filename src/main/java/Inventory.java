@@ -6,7 +6,7 @@
 import java.util.*;
 import java.io.*;
 
-public class InventoryTable {
+public class Inventory {
 
     private static final String fileName = "inventory_team6.csv";
 
@@ -19,7 +19,7 @@ public class InventoryTable {
     private final int supplierIndex = 4;
 
 
-    public InventoryTable() throws FileNotFoundException {
+    public Inventory() throws FileNotFoundException {
         loadInventory();
     }
 
