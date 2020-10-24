@@ -19,7 +19,14 @@ public class QueryMaker {
     private static Object JDBCTutorialUtilities;
     private PreparedStatement preparedStatement;
     private ResultSet tempRS;
+
+    public String getTableName() {
+        return tableName;
+    }
+
     private String tableName;
+
+
 
     //public static final String PRODUCT_ID_STRING = "product_id";
     //public static final String QUANTITY_STRING = "quantity";
@@ -258,7 +265,7 @@ public class QueryMaker {
      * @return
      * @throws SQLException
      */
-    private Object[][] extractResults(ResultSet rs, Boolean isOneColumn) throws SQLException {
+   public Object[][] extractResults(ResultSet rs, Boolean isOneColumn) throws SQLException {
         ArrayList<Object[]> temp = new ArrayList<>();
         int columnCount = rs.getMetaData().getColumnCount();
         for (int j = 0; rs.next(); j++) {
@@ -358,17 +365,16 @@ public class QueryMaker {
      * @throws SQLException
      */
     public void insertRows(String[] columnNames, Object[][] rows) throws SQLException {
-
         StringBuilder builder = new StringBuilder();
         String s = Arrays.toString(columnNames);
         builder.append("INSERT INTO " + tableName + " (" + s.substring(1, s.length() - 1) + ")VALUES");
         for (int i = 0; i < rows.length; i++) {
-
-            String s1 = Arrays.deepToString(rows[i]);
-            builder.append(" (" + s1.substring(1, s1.length() - 1) + ")");
-            if (i < rows.length - 1) {
-                builder.append(",");
+            builder.append(" (");
+            for (int j = 0; j < rows[i].length; j++) {
+                builder.append(quoteWrap(rows[i][j]));
+                builder.append(j < rows[i].length - 1 ? "," : ")");
             }
+            builder.append(i < rows.length - 1 ? "," : "");
         }
         generateUpdate(builder.toString());
     }

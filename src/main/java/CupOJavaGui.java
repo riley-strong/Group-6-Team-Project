@@ -33,7 +33,7 @@ public class CupOJavaGui  {
         getOptionsPanelWest(new String[]{"SEARCH", " Button2", "Button3"});
         getTableListPanelEast(new String[]{"Button1", " Button2", "Button3", "Button4"});
         frame.setLocationRelativeTo(null);
-        ResultSet rs = qm.generateQuery(" SELECT * FROM " + qm.setTableName());
+        ResultSet rs = qm.generateQuery(" SELECT * FROM " + qm.getTableName());
         refresh(qm.extractResults(rs,false));
         frame.pack();
         frame.setVisible(true);
@@ -74,13 +74,9 @@ public class CupOJavaGui  {
             } catch (NullPointerException | SQLException ignore) {
             } finally {
             }
-
         });
-
         buttons[DELETE].addActionListener(e -> {
-
         });
-
     }
 
     public void getDisplayTableCenter() {
