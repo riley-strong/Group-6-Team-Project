@@ -56,16 +56,19 @@ public class MailService {
 
     private static boolean validateEmail(Queue<String> messageOperation, Queue<String> messageProductID, Queue<String> messageQuantity) throws SQLException {
         qm.setTableName("inventory");
+        //Ensures valid operation
         while (messageOperation.peek() != null){
             String operation = messageOperation.poll();
             if (!(operation.equals("buy") || operation.equals("sell")))
                 return false;
         }
+        //Ensures productID is in our databse
         while (messageProductID.peek() != null){
             String productID = messageProductID.poll();
             if (!(qm.contains(productID)))
                 return false;
         }
+        // Ensures quantity is an integer
         while (messageQuantity.peek() != null){
             String quantity = messageQuantity.poll();
             try {
@@ -125,30 +128,40 @@ public class MailService {
 
                 if (messageContent != null) {
                     messageContent = messageContent.toString();
-                    Queue<String> messageOperation = new LinkedList<>();
-                    Queue<String> messageProductID = new LinkedList<>();
-                    Queue<String> messageQuantity = new LinkedList<>();
+                    // 3 Queue's to store the individual each input of an order
+                    Queue<String> messageOperation = new LinkedList<>();    // Stores operation (buy/sell/cancel)
+                    Queue<String> messageProductID = new LinkedList<>();    // Stores order's product ID
+                    Queue<String> messageQuantity = new LinkedList<>(); // Stores order's quantity
                     String[] emailInput = messageContent.split(",");
-                    if (emailInput[0].equalsIgnoreCase("cancel")){ // cancel email requires it to state cancel,0,0 or we get an array out of bounds error, not sure how else to fix this
+                    if (emailInput[0].equalsIgnoreCase("cancel")){ // cancel email requires an input of cancel,0,0 or we get an array out of bounds error, not sure how else to fix this
                         System.out.println("place holder for an email to cancel");
                         return;
                     }
+                    // Email is divided into inputs and stored in its respective queue
                     for (int k = 0; k < emailInput.length; k = k + 3){
                         messageOperation.add(emailInput[k]);
                         messageProductID.add(emailInput[k+1]);
                         messageQuantity.add((emailInput[k+2]).trim());
                     }
-
+                    // Validates email's input
+                    // Valid orders
                     if (validateEmail(new LinkedList<>(messageOperation), new LinkedList<>(messageProductID), new LinkedList<>(messageQuantity))) {
                         System.out.println("Valid");
-                        System.out.println(messageOperation);
+                        // Attempting to insert order to SQL
+                        /*String[] headers = "cust_email,product_id,product_quantity".split(",");
+                        while (messageOperation.peek() != null) {
+                           qm.setTableName("unprocessed_sales");
+                           qm.insertRows(headers, new Object[][]{new Object[]{message.getFrom()[0].toString(), messageProductID.poll(), messageQuantity.poll()}});
+                        }*/
+                        System.out.println(messageOperation);   // Where to insert adding order to table
                         System.out.println(messageProductID);
                         System.out.println(messageQuantity);
-                        sendConfirmation(message.getFrom()[0].toString(),"Order received. Your order will be stored to be processed\n" + "Your order included these products\n"   + messageProductID);
+                        sendConfirmation(message.getFrom()[0].toString(),"Order received. Your order will be stored to be processed\n" + "Your order included these products:\n"   + messageProductID);
                     }
+                    // One of the orders is invalid
                     else {
                         System.out.println("Invalid");
-                        System.out.println(messageOperation);
+                        System.out.println(messageOperation);   // Invalid order; email is sent
                         System.out.println(messageProductID);
                         System.out.println(messageQuantity);
                         sendConfirmation(message.getFrom()[0].toString(),"Order not received. One of the inputs is invalid\n" + "The products you attempted to order:\n"  + messageProductID);
