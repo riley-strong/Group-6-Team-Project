@@ -3,21 +3,24 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.search.FlagTerm;
-import java.io.IOException;
-import java.util.Properties;
+import java.sql.SQLException;
+import java.util.*;
 
 public class MailService {
 
-    private static Inventory inventory;
+    private static QueryMaker qm;
 
-    public static void main(String[] args) throws MessagingException, IOException {
-
-       inventory = new Inventory();
-       inventory.loadInventory();
-        readEmail();
+    static {
+        try {
+            qm = Credentials.databaseLogin();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static boolean sendConfirmation(String emailAdress, String emailBody ){
+    private static boolean sendConfirmation(String emailAdress, String emailBody ){
 
         String from = "teamc1447@gmail.com";
         String host = "smtp.gmail.com";
@@ -40,7 +43,7 @@ public class MailService {
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailAdress));
-            message.setSubject("Confirmation");
+            message.setSubject("Your Order");
             message.setText(emailBody);
             Transport.send(message);
         } catch (MessagingException mex) {
@@ -51,8 +54,35 @@ public class MailService {
         return true;
     }
 
-    public static void readEmail()
-    {
+    private static boolean validateEmail(Queue<String> messageOperation, Queue<String> messageProductID, Queue<String> messageQuantity) throws SQLException {
+        qm.setTableName("inventory");
+        //Ensures valid operation
+        while (messageOperation.peek() != null){
+            String operation = messageOperation.poll();
+            if (!(operation.equals("buy") || operation.equals("sell")))
+                return false;
+        }
+        //Ensures productID is in our databse
+        while (messageProductID.peek() != null){
+            String productID = messageProductID.poll();
+            if (!(qm.contains(productID)))
+                return false;
+        }
+        // Ensures quantity is an integer
+        while (messageQuantity.peek() != null){
+            String quantity = messageQuantity.poll();
+            try {
+                Integer.parseInt(quantity);
+            } catch(NumberFormatException e) {
+                return false;
+            } catch(NullPointerException e) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static void readEmail() {
         String host = "pop.gmail.com";// change accordingly
         String user = "teamc1447@gmail.com";// change accordingly
         String password = "Q2020cs3250";// change accordingly
@@ -98,17 +128,43 @@ public class MailService {
 
                 if (messageContent != null) {
                     messageContent = messageContent.toString();
-
+                    // 3 Queue's to store the individual each input of an order
+                    Queue<String> messageOperation = new LinkedList<>();    // Stores operation (buy/sell/cancel)
+                    Queue<String> messageProductID = new LinkedList<>();    // Stores order's product ID
+                    Queue<String> messageQuantity = new LinkedList<>(); // Stores order's quantity
                     String[] emailInput = messageContent.split(",");
-                    if(emailInput[0].equals("buy")) {
-                       inventory.decrementQuantity(emailInput[1], Integer.parseInt(emailInput[2].trim()));
-                       inventory.update();
-                        sendConfirmation(message.getFrom()[0].toString(),"Thank you for buying: "  + emailInput[1]);
+                    if (emailInput[0].equalsIgnoreCase("cancel")){ // cancel email requires an input of cancel,0,0 or we get an array out of bounds error, not sure how else to fix this
+                        System.out.println("place holder for an email to cancel");
+                        return;
                     }
+                    // Email is divided into inputs and stored in its respective queue
+                    for (int k = 0; k < emailInput.length; k = k + 3){
+                        messageOperation.add(emailInput[k]);
+                        messageProductID.add(emailInput[k+1]);
+                        messageQuantity.add((emailInput[k+2]).trim());
+                    }
+                    // Validates email's input
+                    // Valid orders
+                    if (validateEmail(new LinkedList<>(messageOperation), new LinkedList<>(messageProductID), new LinkedList<>(messageQuantity))) {
+                        System.out.println("Valid");
+                        // Attempting to insert order to SQL
+                        /*String[] headers = "cust_email,product_id,product_quantity".split(",");
+                        while (messageOperation.peek() != null) {
+                           qm.setTableName("unprocessed_sales");
+                           qm.insertRows(headers, new Object[][]{new Object[]{message.getFrom()[0].toString(), messageProductID.poll(), messageQuantity.poll()}});
+                        }*/
+                        System.out.println(messageOperation);   // Where to insert adding order to table
+                        System.out.println(messageProductID);
+                        System.out.println(messageQuantity);
+                        sendConfirmation(message.getFrom()[0].toString(),"Order received. Your order will be stored to be processed\n" + "Your order included these products:\n"   + messageProductID);
+                    }
+                    // One of the orders is invalid
                     else {
-                        inventory.incrementQuantity(emailInput[1], Integer.parseInt(emailInput[2].trim()));
-                        inventory.update();
-                        sendConfirmation(message.getFrom()[0].toString(),"Thank you for selling: "  + emailInput[1]);
+                        System.out.println("Invalid");
+                        System.out.println(messageOperation);   // Invalid order; email is sent
+                        System.out.println(messageProductID);
+                        System.out.println(messageQuantity);
+                        sendConfirmation(message.getFrom()[0].toString(),"Order not received. One of the inputs is invalid\n" + "The products you attempted to order:\n"  + messageProductID);
                     }
                 }
             }
@@ -122,6 +178,10 @@ public class MailService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+        readEmail();
     }
 
 

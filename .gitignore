@@ -6,10 +6,16 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
+
+
 out/
 .vscode
-.idea
 .iml
-.xml
+/.idea/
+/.idea
+.idea
 .idea/
 lib/
+target/
+/target/
+/target
