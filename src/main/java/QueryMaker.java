@@ -4,8 +4,6 @@ import java.io.PrintWriter;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 public class QueryMaker {
@@ -20,6 +18,7 @@ public class QueryMaker {
     private PreparedStatement preparedStatement;
     private ResultSet tempRS;
     private String tableName;
+
 
     //public static final String PRODUCT_ID_STRING = "product_id";
     //public static final String QUANTITY_STRING = "quantity";
@@ -258,7 +257,7 @@ public class QueryMaker {
      * @return
      * @throws SQLException
      */
-    private Object[][] extractResults(ResultSet rs, Boolean isOneColumn) throws SQLException {
+    public Object[][] extractResults(ResultSet rs, Boolean isOneColumn) throws SQLException {
         ArrayList<Object[]> temp = new ArrayList<>();
         int columnCount = rs.getMetaData().getColumnCount();
         for (int j = 0; rs.next(); j++) {
@@ -349,8 +348,12 @@ public class QueryMaker {
         return columnValue.toString();
     }
 
-    // inserts rows into the specified table
 
+    public String getTableName() {
+        return tableName;
+    }
+
+    // inserts rows into the specified table
     /**
      *
      * @param columnNames
