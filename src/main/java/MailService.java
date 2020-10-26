@@ -6,6 +6,9 @@ import javax.mail.search.FlagTerm;
 import java.sql.SQLException;
 import java.util.*;
 
+/*
+    MailService class is used to send and receive customer orders
+ */
 public class MailService {
 
     private static QueryMaker qm;
@@ -20,6 +23,13 @@ public class MailService {
         }
     }
 
+    /**
+     * Sends an confirmation email that states whether the order was valid or invalid
+     *
+     * @param emailAdress  String
+     * @param emailBody    String
+     * @return a value of the primitive type boolean
+     */
     private static boolean sendConfirmation(String emailAdress, String emailBody ){
 
         String from = "teamc1447@gmail.com";
@@ -32,7 +42,9 @@ public class MailService {
         properties.put("mail.smtp.auth", "true");
 
         Session session = Session.getInstance(properties, new javax.mail.Authenticator() {
-
+            /**
+             * Authenticates password for the username
+             */
             protected PasswordAuthentication getPasswordAuthentication() {
 
                 return new PasswordAuthentication("teamc1447@gmail.com", "Q2020cs3250");
@@ -54,6 +66,14 @@ public class MailService {
         return true;
     }
 
+    /**
+     *
+     * @param messageOperation Queue<String>
+     * @param messageProductID Queue<String>
+     * @param messageQuantity Queue<String>
+     * @return boolean validateEmail
+     * @throws SQLException
+     */
     private static boolean validateEmail(Queue<String> messageOperation, Queue<String> messageProductID, Queue<String> messageQuantity) throws SQLException {
         qm.setTableName("inventory");
         //Ensures valid operation
@@ -62,7 +82,7 @@ public class MailService {
             if (!(operation.equals("buy") || operation.equals("sell")))
                 return false;
         }
-        //Ensures productID is in our databse
+        //Ensures productID is in our database
         while (messageProductID.peek() != null){
             String productID = messageProductID.poll();
             if (!(qm.contains(productID)))
@@ -82,13 +102,16 @@ public class MailService {
         return true;
     }
 
+    /**
+     *  Reads the content of the e-mail
+     */
     public static void readEmail() {
         String host = "pop.gmail.com";// change accordingly
         String user = "teamc1447@gmail.com";// change accordingly
         String password = "Q2020cs3250";// change accordingly
 
         try {
-
+            //assigning properties for the session
             Properties properties = new Properties();
             properties.put("mail.pop3.host", host);
             properties.put("mail.pop3.port", "995");
@@ -103,7 +126,7 @@ public class MailService {
 
             Flags seen = new Flags(Flags.Flag.SEEN);
             FlagTerm unseenFlagTerm = new FlagTerm(seen, false);
-
+            //searching for the unseen messages in the e-mail folder
             Message[] messages = emailFolder.search(unseenFlagTerm);
             for (int i = 0, n = messages.length; i < n; i++) {
                 Message message = messages[i];
@@ -125,7 +148,7 @@ public class MailService {
                     Object content1 = message.getContent();
 
                 }
-
+                //read message content if not null
                 if (messageContent != null) {
                     messageContent = messageContent.toString();
                     // 3 Queue's to store the individual each input of an order
@@ -180,6 +203,10 @@ public class MailService {
         }
     }
 
+    /**
+     * The main method is where readEmail is called
+     * @param args String
+     */
     public static void main(String[] args) {
         readEmail();
     }
