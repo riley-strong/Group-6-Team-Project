@@ -13,7 +13,7 @@ import java.util.Date;
 
 
 public class QueryMaker {
-
+    public static int DATETIME = 4;
     public static int DATE = 3;
     public static int DOUBLE = 2;
     public static int INT = 1;
@@ -62,72 +62,127 @@ public class QueryMaker {
                 "hashed_email", "cust_email", "unhashed_email");
 
         // Step 5: Delete (unhashed) email column from unprocessed orders.
-        statement.executeUpdate("ALTER TABLE unprocessed_sales DROP COLUMN cust_email");
+        //statement.executeUpdate("ALTER TABLE unprocessed_sales DROP COLUMN cust_email");
 
     }
 
     public void batchProcessing() throws SQLException {
-        // Step 1: Add tempoorary email column to Processed Sales table.
-        statement.executeUpdate("ALTER TABLE processed_sales ADD COLUMN unhashed_email VARCHAR(320)");
+        // Step 1: Pull inventory table into Java data structure.
+        ResultSet inv = this.readTable("inventory");
+        HashMap<String, Integer> invHashMap = new HashMap<>();
+        String inv_p_id;
+        int inv_quant;
 
-        //Part a: Load in unprocessed sales into Java data structure.
-        ResultSet us = statement.executeQuery("SELECT DISTINCT date, us.cust_location, us.product_id, us.product_quantity, us.hashed_email, hr.unhashed_email " +
+        while (inv.next()) {
+            inv_p_id = inv.getString(1);
+            inv_quant = inv.getInt(2);
+            invHashMap.put(inv_p_id, inv_quant);
+        }
+        HashMap<String, Integer> invHashMap_original = new HashMap<>();
+        invHashMap_original.putAll(invHashMap);
+
+        // Step 2: Pull unprocessed sales into Java data structure
+        ResultSet us = statement.executeQuery("SELECT DISTINCT date, us.cust_email, us.cust_location, us.product_id, us.product_quantity " +
                 "FROM unprocessed_sales AS us " +
-                "LEFT JOIN hash_ref AS hr ON hr.hashed_email = us.hashed_email " +
-                "ORDER BY date, hr.unhashed_email");
-
-        ResultSet inv;
-        String us_date;
+                "ORDER BY date, us.cust_email");
+        java.sql.Date us_date;
+        String us_email;
         String us_loc;
         String us_p_id;
         int us_quant;
-        Blob us_he;
-        String us_uhe;
-        LocalDateTime dt;
-        int inv_quant;
-        String ps_values;
+        List<Transaction> usList = new ArrayList<>();
 
-
-        //Part b: Iterate through unprocessed_sales, comparing with inventory & writing to processed_sales
         while (us.next()) {
-            us_date = us.getString(1);
-            us_loc = us.getString(2);
-            us_p_id = us.getString(3);
-            us_quant = us.getInt(4);
-            us_he = us.getBlob(5);
-            us_uhe = us.getString(6);
+            us_date = us.getDate(1);
+            us_email = us.getString(2);
+            us_loc = us.getString(3);
+            us_p_id = us.getString(4);
+            us_quant = us.getInt(5);
 
-            dt = LocalDateTime.now();
-
-            System.out.println(us_date + ", " + us_loc + ", " + us_p_id + ", " + "" + us_quant + ", " + us_he + ", " + us_uhe + ", " + valueQueryPrep(dt));
-
-            inv = this.readValues("quantity", "inventory", "product_id = " + valueQueryPrep(us_p_id));
-            inv.next();
-            inv_quant = inv.getInt(1);
-
-            if (inv_quant >= us_quant) {
-                this.updateTableFromStatic("inventory", "unprocessed_sales", "quantity",
-                        "" + (inv_quant - us_quant), "product_id", us_p_id);
-                ps_values = "" + valueQueryPrep(us_date) + ", " + valueQueryPrep(dt) + ", " + valueQueryPrep(us_uhe) + ", " +
-                        valueQueryPrep(us_loc) + ", " + valueQueryPrep(us_p_id) + ", " + valueQueryPrep("" + us_quant) + ", " + 1;
-                System.out.println("Successful order for " + us_uhe);
-            }
-            else {
-                ps_values = "" + valueQueryPrep(us_date) + ", " + valueQueryPrep(dt) + ", " + valueQueryPrep(us_uhe) + ", " +
-                        valueQueryPrep(us_loc) + ", " + valueQueryPrep(us_p_id) + ", " + valueQueryPrep("" + us_quant) + ", " + 0;
-                System.out.println("Unsuccessful order for " + us_uhe);
-            }
-            insertValuesIntoTable("processed_sales",
-                    "date, processed_datetime, unhashed_email, cust_location, product_id, product_quantity, result",ps_values);
-            System.out.println("processed_sales table in SQL database updated.");
+            Transaction transaction = new Transaction(us_date, us_email, us_loc, us_p_id, us_quant);
+            usList.add(transaction);
         }
 
-        this.updateTableFromTable("processed_sales", "hash_ref", "hashed_email",
-                "hashed_email", "unhashed_email", "unhashed_email");
+        // Step 3: Iteratively compare batch orders to inventory, updating inventory & processed sales Java structures
+        int inv_q;
+        int us_q;
+        List<String[]> psList = new ArrayList<>();
 
-        statement.executeUpdate("ALTER TABLE processed_sales DROP COLUMN unhashed_email");
+        for (Transaction t: usList) {
+            us_q = t.getProduct_quantity();
+            inv_q = invHashMap.get(t.getProduct_id());
+
+            if (us_q <= inv_q) {
+                invHashMap.put(t.getProduct_id(), inv_q - us_q);
+                psList.add(t.processTransaction(1));
+            }
+            else
+                psList.add(t.processTransaction(0));
+        }
+
+        //Step 3.5: Remove duplicates (unchanged quantities) from hash map to go into inventory SQL table.
+        Iterator iter = invHashMap_original.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry p = (Map.Entry)iter.next();
+            if (invHashMap.get(p.getKey()) == p.getValue())
+                invHashMap.remove(p.getKey());
+        }
+
+        // Step 4: Alter SQL inventory with updated inventory values from Java data structure.
+        Iterator it = invHashMap.entrySet().iterator();
+        String p;
+        int q;
+        int x = 0;
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            p = (String) pair.getKey();
+            q = (int) pair.getValue();
+
+            statement.executeUpdate("UPDATE inventory SET quantity = " + valueQueryPrep(q) + " " +
+                    " WHERE product_id = " + valueQueryPrep(p));
+        }
+
+        //Step 5: Construct second parameter of InsertRows method (2-D Object Array)
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LinkedList<Object[]> tempArray = new LinkedList<>();
+
+        for (String[] s: psList) {
+            Object[] strArr = new String[7];
+
+            strArr[0] = valueQueryPrep(java.sql.Date.valueOf(s[0]));
+            strArr[1] = valueQueryPrep(LocalDateTime.parse(s[1], formatter));
+            strArr[2] = valueQueryPrep(s[2]);
+            strArr[3] = valueQueryPrep(s[3]);
+            strArr[4] = valueQueryPrep(s[4]);
+            strArr[5] = valueQueryPrep(Integer.parseInt(s[5]));
+            strArr[6] = valueQueryPrep(Integer.parseInt(s[6]));
+            tempArray.add(strArr);
+            }
+
+        String[] headers = {"date", "processed_datetime", "unhashed_email", "cust_location", "product_id", "product_quantity", "result"};
+        Object[][] objects = new Object[tempArray.size()][headers.length];
+        for (int j = 0; j < objects.length; j++) {
+            Object[] element = tempArray.pop();
+            for (int i = 0; i < headers.length; i++) {
+                objects[j][i] = element[i];
+            }
+        }
+
+        //Step 6: Insert Rows into processed_sales SQL table
+        this.setTableName("processed_sales");
+        this.insertRows(headers, objects);
+
+        //Step 7: Truncate unprocessed_sales table.
+        statement.executeUpdate("TRUNCATE unprocessed_sales");
+
+        //Step 8: Add in hashed emails to processed_sales table
+        statement.executeUpdate("UPDATE processed_sales, hash_ref " +
+                " SET processed_sales.hashed_email = hash_ref.hashed_email " +
+                " WHERE processed_sales.unhashed_email = hash_ref.unhashed_email");
+
+        //Step 9: Truncate unhashed_emails values from processed_sales table
+        statement.executeUpdate("UPDATE processed_sales SET unhashed_email = null ");
     }
-
 
 
     /**
@@ -163,7 +218,8 @@ public class QueryMaker {
 
         // Step 5: Create processed_sales Table in SQL Database.
         createTable("processed_sales",
-                "date DATE,processed_datetime DATETIME,hashed_email VARBINARY(32) NULL,cust_location VARCHAR(5),product_id VARCHAR(12),product_quantity int,result bit)");
+                "date DATE,processed_datetime DATETIME,unhashed_email VARCHAR(320), hashed_email VARBINARY(32) NULL," +
+                        "cust_location VARCHAR(5),product_id VARCHAR(12),product_quantity int,result int)");
 
     }
 
@@ -440,6 +496,13 @@ public class QueryMaker {
         this.tableName = tableName;
     }
 
+    public void topTenCustomers() throws SQLException {
+        statement.execute("DROP TABLE IF EXISTS temp");
+        this.createTable("temp", "date date, cust_email VARCHAR(320), product_id VARCHAR(12), Total_Purchase DECIMAL (64, 2)");
+        statement.executeUpdate("INSERT INTO temp ");
+
+    }
+
     public void updateTableFromTable(String tableName1, String tableName2, String setColumnNameT1, String setColumnNameT2, String whereColumnNameT1, String whereColumnNameT2) throws SQLException {
         statement.executeUpdate("UPDATE " + tableName1 + ", " + tableName2 + " " +
                 "SET " + tableName1 + "." + setColumnNameT1 + " = " + tableName2 + "." + setColumnNameT2 + " " +
@@ -503,6 +566,13 @@ public class QueryMaker {
         return result;
     }
 
+    public String valueQueryPrep (java.sql.Date value) {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String staging = dateFormat.format(value);
+        String result = "'" + staging + "'";
+        return result;
+    }
+
     public String valueQueryPrep (double value) {
         String result = "'" + value + "'";
         return result;
@@ -532,13 +602,13 @@ public class QueryMaker {
         qm.batchLoading();
         System.out.println("Batch file loading complete.");
 
-        /*
-        qm.batchProcessing(); troubleshooting this right now ///////////////////////////////////////////////
+
+        qm.batchProcessing(); //troubleshooting this right now ///////////////////////////////////////////////
         System.out.println();
         System.out.println();
         System.out.println("Batch processing complete.");
         System.out.println();
-         */
+
 
         //used in illustrations below - not intended for production code
         statement.executeUpdate("INSERT INTO inventory VALUES (\"test1234test\", 10, 1.01, 2.02, \"testsupp\")");
