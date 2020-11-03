@@ -16,6 +16,6 @@ out/
 .idea
 .idea/
 lib/
-target/
-/target/
+target/*
+/target/*
 /target
