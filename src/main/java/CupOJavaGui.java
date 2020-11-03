@@ -56,8 +56,10 @@ public class CupOJavaGui  {
         for (int i = 0; i < buttonNames.length; i++) {
             constraints.gridy = i;
             buttons[i] = new JButton(buttonNames[i]);
-            buttons[i].setBackground(Color.BLACK);
-            buttons[i].setForeground(Color.yellow);
+            buttons[i].setBackground(Color.white);
+            buttons[i].setForeground(Color.black);
+            buttons[i].setFont(new java.awt.Font("Arial", Font.BOLD, 12));
+
             panel.add(this.buttons[i], constraints);
 
         }
@@ -66,11 +68,36 @@ public class CupOJavaGui  {
             String columnName = null;
             String tableName = null;
             try {
-                tableName = JOptionPane.showInputDialog("Enter table Name");
-                 columnName= JOptionPane.showInputDialog("Enter column Name");
-                columnValue = JOptionPane.showInputDialog("Enter value of column");
-                    Object[][] rows = qm.getProduct(tableName, columnName,columnValue);
-                    refresh(rows);
+                while(columnValue == null || columnValue.isEmpty()){
+                    columnValue = JOptionPane.showInputDialog("Enter value of column");
+                    if(columnValue.isEmpty()){
+                        JOptionPane optionPane = new JOptionPane("Enter a valid column value!", JOptionPane.ERROR_MESSAGE);
+                        JDialog dialog = optionPane.createDialog("Failure");
+                        dialog.setAlwaysOnTop(true);
+                        dialog.setVisible(true);
+                    }
+                }
+                while(columnName == null || columnName.isEmpty()){
+                    columnName= JOptionPane.showInputDialog("Enter column Name");
+                    if(columnName.isEmpty()){
+                        JOptionPane optionPane = new JOptionPane("Enter a valid column name!", JOptionPane.ERROR_MESSAGE);
+                        JDialog dialog = optionPane.createDialog("Failure");
+                        dialog.setAlwaysOnTop(true);
+                        dialog.setVisible(true);
+                    }
+
+                }
+                while(tableName == null || tableName.isEmpty()){
+                    tableName = JOptionPane.showInputDialog("Enter table Name");
+                    if(tableName.isEmpty()){
+                        JOptionPane optionPane = new JOptionPane("Enter a valid table name!", JOptionPane.ERROR_MESSAGE);
+                        JDialog dialog = optionPane.createDialog("Failure");
+                        dialog.setAlwaysOnTop(true);
+                        dialog.setVisible(true);
+                    }
+                }
+                Object[][] rows = qm.getProduct(tableName, columnName,columnValue);
+                refresh(rows);
             } catch (NullPointerException | SQLException ignore) {
             } finally {
             }
