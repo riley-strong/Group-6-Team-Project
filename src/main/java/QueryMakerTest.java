@@ -7,7 +7,8 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 class QueryMakerTest {
-    QueryMaker qm = Credentials.databaseLogin();
+    final Credentials credentials = new Credentials();
+    QueryMaker qm = credentials.getQueryMaker();
 
     QueryMakerTest() throws SQLException, ClassNotFoundException {
     }

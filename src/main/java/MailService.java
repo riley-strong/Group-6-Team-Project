@@ -14,13 +14,9 @@ public class MailService {
     private static QueryMaker qm;
 
     static {
-        try {
-            qm = Credentials.databaseLogin();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+        final Credentials credentials = new Credentials();
+        QueryMaker qm = credentials.getQueryMaker();
+
     }
 
     /**

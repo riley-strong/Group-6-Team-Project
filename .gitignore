@@ -19,3 +19,6 @@ lib/
 target/*
 /target/*
 /target
+/target/**
+/target/**/classes
+src/test/**
