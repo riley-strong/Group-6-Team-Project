@@ -148,7 +148,8 @@ public class CupOJavaGui  {
 
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
 
-        QueryMaker qm = Credentials.databaseLogin();
+        final Credentials credentials = new Credentials();
+        QueryMaker qm = credentials.getQueryMaker();
         qm.setTableName("inventory");
         CupOJavaGui coj = new CupOJavaGui(qm);
     }
