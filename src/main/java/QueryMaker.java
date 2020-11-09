@@ -211,19 +211,6 @@ public class QueryMaker {
         statement.executeUpdate("UPDATE processed_sales SET unhashed_email = null ");
     }
 
-    //TODO: Once riley changes the MailService.java from using this method we can delete it.
-
-    /**
-     * @param productID
-     * @return
-     * @throws SQLException
-     */
-
-    public boolean contains(String productID) throws SQLException {
-        ResultSet rs = generateQuery("SELECT * FROM inventory WHERE product_id = '" + productID + "'");
-        return rs.next();
-    }
-
     /**
      * Takes in a inventory csv file and formats the file information to be recognized by SQL
      * creates four tables: inventory, unprocessed_sales, hash_ref and processed_sales
@@ -730,7 +717,7 @@ public class QueryMaker {
 
 
     public Boolean valueExists(String columnName, String tableName, double value) throws SQLException {
-        ResultSet rs = statement.executeQuery("SELECT COUNT( " + columnName + " FROM " + tableName + " WHERE " + columnName + " = " + valueQueryPrep(value));
+        ResultSet rs = statement.executeQuery("SELECT COUNT( " + columnName + " ) FROM " + tableName + " WHERE " + columnName + " = " + valueQueryPrep(value));
         int temp = 0;
         while (rs.next()) {
             temp++;
@@ -749,7 +736,7 @@ public class QueryMaker {
      */
 
     public Boolean valueExists(String columnName, String tableName, int value) throws SQLException {
-        ResultSet rs = statement.executeQuery("SELECT COUNT( " + columnName + " FROM " + tableName + " WHERE " + columnName + " = " + valueQueryPrep(value));
+        ResultSet rs = statement.executeQuery("SELECT COUNT( " + columnName + " ) FROM " + tableName + " WHERE " + columnName + " = " + valueQueryPrep(value));
         int temp = 0;
         while (rs.next()) {
             temp++;
@@ -768,7 +755,7 @@ public class QueryMaker {
      */
 
     public Boolean valueExists(String columnName, String tableName, String value) throws SQLException {
-        ResultSet rs = statement.executeQuery("SELECT COUNT( " + columnName + " FROM " + tableName + " WHERE " + columnName + " = " + valueQueryPrep(value));
+        ResultSet rs = statement.executeQuery("SELECT COUNT( " + columnName + " ) FROM " + tableName + " WHERE " + columnName + " = " + valueQueryPrep(value));
         int temp = 0;
         while (rs.next()) {
             temp++;

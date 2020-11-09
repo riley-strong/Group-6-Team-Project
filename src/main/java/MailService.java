@@ -11,24 +11,16 @@ import java.util.*;
  */
 public class MailService {
 
-    private static QueryMaker qm;
-
-    static {
-        final Credentials credentials = new Credentials();
-        QueryMaker qm = credentials.getQueryMaker();
-
-    }
-
     /**
      * Sends an confirmation email that states whether the order was valid or invalid
      *
-     * @param emailAdress  String
+     * @param emailAddress  String
      * @param emailBody    String
      * @return a value of the primitive type boolean
      */
-    private static boolean sendConfirmation(String emailAdress, String emailBody ){
+    private boolean sendConfirmation(Credentials credentials,String emailAddress, String emailBody){
 
-        String from = "teamc1447@gmail.com";
+        String from = credentials.getEmail();
         String host = "smtp.gmail.com";
         Properties properties = System.getProperties();
 
@@ -43,14 +35,14 @@ public class MailService {
              */
             protected PasswordAuthentication getPasswordAuthentication() {
 
-                return new PasswordAuthentication("teamc1447@gmail.com", "Q2020cs3250");
+                return new PasswordAuthentication( credentials.getEmail(), credentials.getEmailPassword());
             }
         });
 
         try {
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailAdress));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailAddress));
             message.setSubject("Your Order");
             message.setText(emailBody);
             Transport.send(message);
@@ -64,26 +56,31 @@ public class MailService {
 
     /**
      *
-     * @param messageOperation Queue<String>
      * @param messageProductID Queue<String>
      * @param messageQuantity Queue<String>
      * @return boolean validateEmail
      * @throws SQLException
      */
-    private static boolean validateEmail(Queue<String> messageOperation, Queue<String> messageProductID, Queue<String> messageQuantity) throws SQLException {
-        qm.setTableName("inventory");
-        //Ensures valid operation
-        while (messageOperation.peek() != null){
-            String operation = messageOperation.poll();
-            if (!(operation.equals("buy") || operation.equals("sell")))
-                return false;
+    private boolean validateEmail(String location,Queue<String> messageProductID, Queue<String> messageQuantity, QueryMaker qm) throws SQLException {
+        
+        //Ensures location is valid (5 digits and an int)
+        try {
+            Integer.parseInt(location);
+        } catch(NumberFormatException e) {
+            return false;
+        } catch(NullPointerException e) {
+            return false;
         }
+        if (Integer.parseInt(location) < 1000)
+            return false;
+
         //Ensures productID is in our database
         while (messageProductID.peek() != null){
             String productID = messageProductID.poll();
-            if (!(qm.contains(productID)))
+            if (!(qm.valueExists("product_id", "inventory", productID)))
                 return false;
         }
+
         // Ensures quantity is an integer
         while (messageQuantity.peek() != null){
             String quantity = messageQuantity.poll();
@@ -101,10 +98,10 @@ public class MailService {
     /**
      *  Reads the content of the e-mail
      */
-    public static void readEmail() {
+    public void readEmail(Credentials credentials, QueryMaker qm) {
         String host = "pop.gmail.com";// change accordingly
-        String user = "teamc1447@gmail.com";// change accordingly
-        String password = "Q2020cs3250";// change accordingly
+        String user = credentials.getEmail();// change accordingly
+        String password = credentials.getEmailPassword();// change accordingly
 
         try {
             //assigning properties for the session
@@ -144,46 +141,70 @@ public class MailService {
                     Object content1 = message.getContent();
 
                 }
+
                 //read message content if not null
                 if (messageContent != null) {
                     messageContent = messageContent.toString();
+
                     // 3 Queue's to store the individual each input of an order
-                    Queue<String> messageOperation = new LinkedList<>();    // Stores operation (buy/sell/cancel)
                     Queue<String> messageProductID = new LinkedList<>();    // Stores order's product ID
                     Queue<String> messageQuantity = new LinkedList<>(); // Stores order's quantity
-                    String[] emailInput = messageContent.split(",");
-                    if (emailInput[0].equalsIgnoreCase("cancel")){ // cancel email requires an input of cancel,0,0 or we get an array out of bounds error, not sure how else to fix this
+                    String[] emailInput = messageContent.split(","); //Splits CSV formatted email into text fields
+
+                    //Cancellation email is caught here
+                    // TODO: 11/9/20 Implement handling cancellation orders by removing the respective orders from unprocessed_sales
+                    if (emailInput[0].trim().equalsIgnoreCase("cancel")){
                         System.out.println("place holder for an email to cancel");
                         return;
                     }
+
+                    // Obtain location from email, should be just very first field
+                    String location = emailInput[0];
+
                     // Email is divided into inputs and stored in its respective queue
-                    for (int k = 0; k < emailInput.length; k = k + 3){
-                        messageOperation.add(emailInput[k]);
-                        messageProductID.add(emailInput[k+1]);
-                        messageQuantity.add((emailInput[k+2]).trim());
+                    for (int k = 1; k < emailInput.length; k = k + 2){
+                        messageProductID.add(emailInput[k]);
+                        messageQuantity.add((emailInput[k+1]).trim());
                     }
+
                     // Validates email's input
-                    // Valid orders
-                    if (validateEmail(new LinkedList<>(messageOperation), new LinkedList<>(messageProductID), new LinkedList<>(messageQuantity))) {
-                        System.out.println("Valid");
-                        // Attempting to insert order to SQL
-                        /*String[] headers = "cust_email,product_id,product_quantity".split(",");
-                        while (messageOperation.peek() != null) {
-                           qm.setTableName("unprocessed_sales");
-                           qm.insertRows(headers, new Object[][]{new Object[]{message.getFrom()[0].toString(), messageProductID.poll(), messageQuantity.poll()}});
-                        }*/
-                        System.out.println(messageOperation);   // Where to insert adding order to table
-                        System.out.println(messageProductID);
-                        System.out.println(messageQuantity);
-                        sendConfirmation(message.getFrom()[0].toString(),"Order received. Your order will be stored to be processed\n" + "Your order included these products:\n"   + messageProductID);
+                    if (validateEmail(location, new LinkedList<>(messageProductID), new LinkedList<>(messageQuantity), qm)) {
+
+                        // Obtains date from gmail API and reformats it for mySQL
+                        System.out.println("Valid order from email");
+                        String date;
+                        
+                        //Deprecated methods are use here because the "new" methods display the day of the week and the month name instead of the corresponding numbers
+                        date = message.getSentDate().getYear() + "";
+                        date = "20" + date.substring(1) + "-" + message.getSentDate().getMonth() + "-" + message.getSentDate().getDate();
+
+                        // Obtains and reformats sender's email
+                        String sender = message.getFrom()[0].toString();
+                        sender = sender.substring(sender.indexOf("<") + 1, sender.indexOf(">"));
+
+                        // Copy of all of the products order in a single email to be included in the confirmation email
+                        String products = messageProductID.toString();
+
+                        // 2-D object array to insert all of the orders in a single email to mySQL
+                        String[] headers = "date,cust_email,cust_location,product_id,product_quantity".split(",");
+                        Object[][] objArr = new Object[messageProductID.size()][5];
+                        for (int l = 0; messageProductID.peek() != null; l ++) {
+                            objArr[l][0] = qm.valueQueryPrep(date);
+                            objArr[l][1] = qm.valueQueryPrep(sender);
+                            objArr[l][2] = location;
+                            objArr[l][3] = qm.valueQueryPrep(messageProductID.poll());
+                            objArr[l][4] = messageQuantity.poll();
+                        }
+                        qm.setTableName("unprocessed_sales");
+                        qm.insertRows(headers, objArr);
+
+                        // Send email stating order received
+                        sendConfirmation(credentials, message.getFrom()[0].toString(),"Order received. Your order will be stored to be processed\n" + "Your order included these products:\n"   + products);
                     }
-                    // One of the orders is invalid
+                    // One of the orders is invalid, email stating this is sent
                     else {
-                        System.out.println("Invalid");
-                        System.out.println(messageOperation);   // Invalid order; email is sent
-                        System.out.println(messageProductID);
-                        System.out.println(messageQuantity);
-                        sendConfirmation(message.getFrom()[0].toString(),"Order not received. One of the inputs is invalid\n" + "The products you attempted to order:\n"  + messageProductID);
+                        System.out.println("Invalid order from email");
+                        sendConfirmation(credentials, message.getFrom()[0].toString(),"Order not received. One of the inputs is invalid\n" + "The products you attempted to order:\n"  + messageProductID);
                     }
                 }
             }
@@ -198,14 +219,4 @@ public class MailService {
             e.printStackTrace();
         }
     }
-
-    /**
-     * The main method is where readEmail is called
-     * @param args String
-     */
-    public static void main(String[] args) {
-        readEmail();
-    }
-
-
 }
