@@ -14,7 +14,7 @@ public class MailService {
     /**
      * Sends an confirmation email that states whether the order was valid or invalid
      *
-     * @param emailAdress  String
+     * @param emailAddress  String
      * @param emailBody    String
      * @return a value of the primitive type boolean
      */
@@ -77,8 +77,7 @@ public class MailService {
         //Ensures productID is in our database
         while (messageProductID.peek() != null){
             String productID = messageProductID.poll();
-            productID = productID.substring(1, productID.lastIndexOf("'"));
-            if (!(qm.contains(productID)))
+            if (!(qm.valueExists("product_id", "inventory", productID)))
                 return false;
         }
 
@@ -142,9 +141,11 @@ public class MailService {
                     Object content1 = message.getContent();
 
                 }
+
                 //read message content if not null
                 if (messageContent != null) {
                     messageContent = messageContent.toString();
+
                     // 3 Queue's to store the individual each input of an order
                     Queue<String> messageProductID = new LinkedList<>();    // Stores order's product ID
                     Queue<String> messageQuantity = new LinkedList<>(); // Stores order's quantity
@@ -162,7 +163,7 @@ public class MailService {
 
                     // Email is divided into inputs and stored in its respective queue
                     for (int k = 1; k < emailInput.length; k = k + 2){
-                        messageProductID.add("'" + emailInput[k] + "'");
+                        messageProductID.add(emailInput[k]);
                         messageQuantity.add((emailInput[k+1]).trim());
                     }
 
@@ -172,13 +173,14 @@ public class MailService {
                         // Obtains date from gmail API and reformats it for mySQL
                         System.out.println("Valid order from email");
                         String date;
+                        
                         //Deprecated methods are use here because the "new" methods display the day of the week and the month name instead of the corresponding numbers
                         date = message.getSentDate().getYear() + "";
-                        date = "'20" + date.substring(1) + "-" + message.getSentDate().getMonth() + "-" + message.getSentDate().getDate() + "'";
+                        date = "20" + date.substring(1) + "-" + message.getSentDate().getMonth() + "-" + message.getSentDate().getDate();
 
                         // Obtains and reformats sender's email
                         String sender = message.getFrom()[0].toString();
-                        sender = "'" + sender.substring(sender.indexOf("<") + 1, sender.indexOf(">")) + "'";
+                        sender = sender.substring(sender.indexOf("<") + 1, sender.indexOf(">"));
 
                         // Copy of all of the products order in a single email to be included in the confirmation email
                         String products = messageProductID.toString();
@@ -187,10 +189,10 @@ public class MailService {
                         String[] headers = "date,cust_email,cust_location,product_id,product_quantity".split(",");
                         Object[][] objArr = new Object[messageProductID.size()][5];
                         for (int l = 0; messageProductID.peek() != null; l ++) {
-                            objArr[l][0] = date;
-                            objArr[l][1] = sender;
+                            objArr[l][0] = qm.valueQueryPrep(date);
+                            objArr[l][1] = qm.valueQueryPrep(sender);
                             objArr[l][2] = location;
-                            objArr[l][3] = messageProductID.poll();
+                            objArr[l][3] = qm.valueQueryPrep(messageProductID.poll());
                             objArr[l][4] = messageQuantity.poll();
                         }
                         qm.setTableName("unprocessed_sales");
