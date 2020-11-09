@@ -14,7 +14,11 @@ public class Main {
         }
 
         public void invoke(Credentials credentials,QueryMaker qm) throws FileNotFoundException, SQLException, ClassNotFoundException {
-                System.out.println("The QueryMaker object has been created.");
+                MailService mail = new MailService();
+                System.out.println("Reading emails");
+                mail.readEmail(credentials, qm);
+                System.out.println("Emails read");
+                /*System.out.println("The QueryMaker object has been created.");
                 qm.createDatabaseStructure();
                 System.out.println("The basic database structure has been created and inventory has been loaded.");
                 qm.batchLoading();
@@ -81,7 +85,7 @@ public class Main {
                 }
 
                 System.out.println();
-
+*/
         }
 
 

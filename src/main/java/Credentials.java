@@ -22,9 +22,11 @@ public class Credentials {
         new Login(this);
     }
 
-    public QueryMaker getQueryMaker() {
-
-        return queryMaker;
+    public QueryMaker getQueryMaker() throws SQLException, ClassNotFoundException {
+        if (queryMaker != null)
+            return queryMaker;
+        else
+            return queryMaker = new QueryMaker(databaseUserName, databasePassword, databaseIPAddress, databasePort, databaseSchema);
     }
 
     /**
@@ -33,6 +35,10 @@ public class Credentials {
     public String getEmail() {
 
         return emailAddress;
+    }
+
+    public String getEmailPassword(){
+        return emailPassword;
     }
 
     private String getField(JComponent field) {
