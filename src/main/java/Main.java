@@ -1,6 +1,8 @@
 import com.mysql.cj.xdevapi.Schema;
+import org.jfree.ui.RefineryUtilities;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -13,11 +15,21 @@ public class Main {
                 final Credentials credentials = new Credentials();
         }
 
-        public void invoke(Credentials credentials,QueryMaker qm) throws FileNotFoundException, SQLException, ClassNotFoundException {
-                MailService mail = new MailService();
-                System.out.println("Reading emails");
-                mail.readEmail(credentials, qm);
-                System.out.println("Emails read");
+        public void invoke(Credentials credentials,QueryMaker qm) throws IOException, SQLException, ClassNotFoundException {
+                System.out.println("Starting chart");
+                String title = "CUP'O JAVA ASSETS";
+                TimeSeries_AWT demo = new TimeSeries_AWT(title, credentials, 3);
+
+                demo.pack();
+                RefineryUtilities.positionFrameRandomly(demo);
+                System.out.println("Chart completed");
+                demo.setVisible(true);
+
+//                MailService mail = new MailService();
+//                System.out.println("Reading emails");
+//                mail.readEmail(credentials, qm);
+//                System.out.println("Emails read");
+  
                 /*System.out.println("The QueryMaker object has been created.");
                 qm.createDatabaseStructure();
                 System.out.println("The basic database structure has been created and inventory has been loaded.");

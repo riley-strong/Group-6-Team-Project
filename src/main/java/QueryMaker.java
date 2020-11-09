@@ -20,7 +20,7 @@ public class QueryMaker {
     public static int STRING = 0;
     private static Connection connection;
     private PreparedStatement preparedStatement;
-    private static Statement statement;
+    public static Statement statement;
     private String tableName;
 
 

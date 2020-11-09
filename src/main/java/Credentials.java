@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.SQLException;
 import javax.mail.*;
 import java.util.Arrays;
@@ -159,6 +160,8 @@ public class Credentials {
                     queryMaker = null;
                     JOptionPane.showMessageDialog(
                             null, "You have not signed in yet");
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
                 }
             });
         }
