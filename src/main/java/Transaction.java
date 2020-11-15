@@ -1,9 +1,6 @@
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.sql.*;
 
 public class Transaction {
 
@@ -14,22 +11,20 @@ public class Transaction {
     private String product_id;
     private int product_quantity;
 
-    public static final String[] headers = new String[]{"date","cust_email","cust_location","product_id","product_quantity"};
-
     /**
      * Constructor with parameters (assuming all params provided)
-     *  @param date  LocalDate
+     *  @param date  java.sql.date
      * @param custEmail  String
      * @param custLocation  customer location; String type
      * @param productID  8-character alphanumeric that will assist in representing this object in memory
      * @param productQuantity  product quantity; initial value must be integer >= 0
      */
     public Transaction(java.sql.Date date, String custEmail, String custLocation, String productID, int productQuantity){
-        this.date = date;
-        this.cust_email = custEmail;
-        this.cust_location = custLocation;
-        this.product_id = productID;
-        this.product_quantity = productQuantity;
+        setDate(date);
+        setCust_email(custEmail);
+        setCust_location(custLocation); ;
+        setProduct_id(productID);
+        setProduct_quantity(productQuantity);
     }
 
     /**
@@ -37,15 +32,7 @@ public class Transaction {
      * @return  customer e-mail
      */
     public String getCust_email() {
-        return cust_email;
-    }
-
-    /**
-     *
-     * @param cust_email  customer e-mail; int type
-     */
-    public void setCust_email(String cust_email) {
-        this.cust_email = cust_email;
+        return this.cust_email;
     }
 
     /**
@@ -53,7 +40,38 @@ public class Transaction {
      * @return customer location
      */
     public String getCust_location() {
-        return cust_location;
+        return this.cust_location;
+    }
+
+    /**
+     *
+     * @return LocalDate
+     */
+    public java.sql.Date getDate() { return this.date; }
+
+    /**
+     *
+     * @return Product ID
+     */
+    public String getProduct_id() {
+        return this.product_id;
+    }
+
+    /**
+     *
+     * @return Product Quantity
+     */
+    public int getProduct_quantity() {
+        return this.product_quantity;
+    }
+
+
+    /**
+     *
+     * @param cust_email  customer e-mail; int type
+     */
+    public void setCust_email(String cust_email) {
+        this.cust_email = cust_email;
     }
 
     /**
@@ -66,26 +84,10 @@ public class Transaction {
 
     /**
      *
-     * @return Product ID
-     */
-    public String getProduct_id() {
-        return product_id;
-    }
-
-    /**
-     *
      * @param product_id Product ID; String type
      */
     public void setProduct_id(String product_id) {
         this.product_id = product_id;
-    }
-
-    /**
-     *
-     * @return Product Quantity
-     */
-    public int getProduct_quantity() {
-        return product_quantity;
     }
 
     /**
@@ -98,33 +100,12 @@ public class Transaction {
 
     /**
      *
-     * @return  Output is an array version of the headers used in transaction
-     */
-    public static String[] getHeaders() {
-        return headers;
-    }
-
-    /**
-     *
-     * @return LocalDate
-     */
-    public java.sql.Date getDate() { return date; }
-
-    /**
-     *
      * @param date Localdate; date type
      */
-    public void setDate(Date date) {
+    public void setDate(java.sql.Date date) {
         this.date = date;
     }
 
-    /**
-     *
-     * @return  Output is an array version of a transaction object
-     */
-    public Object[] toArray(){
-        return new Object[]{date,cust_email,cust_location,product_id,product_quantity};
-    }
 
     public String[] processTransaction(int x){
         LocalDateTime dt = LocalDateTime.now();
@@ -132,14 +113,14 @@ public class Transaction {
         String dt_staging = dt.format(formatter);
         String dt_result = dt_staging;
 
-        LocalDate local_date = this.date.toLocalDate();
+        LocalDate local_date = getDate().toLocalDate();
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("uuuu-MM-dd");
         String date_staging = local_date.format(dateFormat);
         String date_result =  date_staging;
 
         String result_bit = Integer.toString(x);
 
-        return new String[]{date_result, dt_result, this.cust_email,this.cust_location,this.product_id,
-                String.valueOf(this.product_quantity), result_bit};
+        return new String[]{date_result, dt_result, getCust_email(),getCust_location(),getProduct_id(),
+                String.valueOf(getProduct_quantity()), result_bit};
     }
-}//end of Transaction Class
+}
