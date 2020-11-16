@@ -1,45 +1,44 @@
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Transaction {
 
     //variable initialization for headers needed in transaction
-    private java.sql.Date date;
-    private String cust_email;
+    private int date_id;
     private String cust_location;
-    private String product_id;
-    private int product_quantity;
+    private int product_tid;
+    private int quantity;
+    private String hashed_email;
 
     /**
      * Constructor with parameters (assuming all params provided)
-     *  @param date  java.sql.date
-     * @param custEmail  String
-     * @param custLocation  customer location; String type
-     * @param productID  8-character alphanumeric that will assist in representing this object in memory
-     * @param productQuantity  product quantity; initial value must be integer >= 0
+     *  @param date_id  int
+     * @param cust_location  customer location; String type
+     * @param product_tid  id representing product in SQL database
+     * @param quantity  product quantity; initial value must be integer >= 0
+     * @param hashed_email  Hashed String representing customer email in SQL database
      */
-    public Transaction(java.sql.Date date, String custEmail, String custLocation, String productID, int productQuantity){
-        setDate(date);
-        setCust_email(custEmail);
-        setCust_location(custLocation); ;
-        setProduct_id(productID);
-        setProduct_quantity(productQuantity);
+    public Transaction(int date_id, String cust_location, int product_tid, int quantity, String hashed_email){
+        setDate(date_id);
+        setCustLocation(cust_location); ;
+        setProductID(product_tid);
+        setQuantity(quantity);
+        setCustEmail(hashed_email);
     }
 
     /**
      *
-     * @return  customer e-mail
+     * @return  hashed String representing customer e-mail
      */
-    public String getCust_email() {
-        return this.cust_email;
+    public String getCustEmail() {
+        return this.hashed_email;
     }
 
     /**
      *
      * @return customer location
      */
-    public String getCust_location() {
+    public String getCustLocation() {
         return this.cust_location;
     }
 
@@ -47,63 +46,63 @@ public class Transaction {
      *
      * @return LocalDate
      */
-    public java.sql.Date getDate() { return this.date; }
+    public int getDate() { return this.date_id; }
 
     /**
      *
      * @return Product ID
      */
-    public String getProduct_id() {
-        return this.product_id;
+    public int getProductID() {
+        return this.product_tid;
     }
 
     /**
      *
      * @return Product Quantity
      */
-    public int getProduct_quantity() {
-        return this.product_quantity;
+    public int getQuantity() {
+        return this.quantity;
     }
 
 
     /**
      *
-     * @param cust_email  customer e-mail; int type
+     * @param hashed_email  customer e-mail; int type
      */
-    public void setCust_email(String cust_email) {
-        this.cust_email = cust_email;
+    public void setCustEmail(String hashed_email) {
+        this.hashed_email = hashed_email;
     }
 
     /**
      *
      * @param cust_location customer location; int type
      */
-    public void setCust_location(String cust_location) {
+    public void setCustLocation(String cust_location) {
         this.cust_location = cust_location;
     }
 
     /**
      *
-     * @param product_id Product ID; String type
+     * @param date_id id representing date in SQL table; int type
      */
-    public void setProduct_id(String product_id) {
-        this.product_id = product_id;
+    public void setDate(int date_id) {
+        this.date_id = date_id;
     }
 
     /**
      *
-     * @param product_quantity Product Quantity; int type
+     * @param product_tid Product ID; int type
      */
-    public void setProduct_quantity(int product_quantity) {
-        this.product_quantity = product_quantity;
+    public void setProductID(int product_tid) {
+        this.product_tid = product_tid;
     }
 
     /**
      *
-     * @param date Localdate; date type
+     * @param quantity Product Quantity; int type
      */
-    public void setDate(java.sql.Date date) {
-        this.date = date;
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
 
@@ -113,14 +112,7 @@ public class Transaction {
         String dt_staging = dt.format(formatter);
         String dt_result = dt_staging;
 
-        LocalDate local_date = getDate().toLocalDate();
-        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("uuuu-MM-dd");
-        String date_staging = local_date.format(dateFormat);
-        String date_result =  date_staging;
-
-        String result_bit = Integer.toString(x);
-
-        return new String[]{date_result, dt_result, getCust_email(),getCust_location(),getProduct_id(),
-                String.valueOf(getProduct_quantity()), result_bit};
+        return new String[]{String.valueOf(getDate()), dt_result, getCustLocation(), String.valueOf(getProductID()),
+                String.valueOf(getQuantity()), Integer.toString(x), getCustEmail()};
     }
 }

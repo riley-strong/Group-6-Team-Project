@@ -22,7 +22,7 @@ public class QueryMaker {
     private PreparedStatement preparedStatement;
     public static Statement statement;
     private String tableName;
-    private final int resupply_quantity = 500;
+
 
 
     /**
@@ -59,25 +59,67 @@ public class QueryMaker {
      * @throws ClassNotFoundException
      */
 
-    public void batchLoading() throws SQLException, FileNotFoundException, ClassNotFoundException {
-        // Step 1: Load SQL unprocessed_sales table with Java 2-D Array.
-        Object[][] objArr = this.csvToArray("customer_orders_A_team6.csv", new int[]{DATE, STRING, STRING, STRING, INT});
-        this.setTableName("unprocessed_sales");
+    public void batchLoading(String customer_orders_file, String dim_date_start, String dim_date_end) throws SQLException, FileNotFoundException, ClassNotFoundException {
+
+        // Step 1: Load SQL unprocessed_sales table with Java 2-D Array using .csv file for data source.
+        Object[][] objArr = this.csvToArray(customer_orders_file, new int[]{DATE, STRING, STRING, STRING, INT});
+        this.setTableName("temp_unprocessed_sales");
         this.insertRows(new String[]{"date", "cust_email", "cust_location", "product_id", "product_quantity"}, objArr);
 
-        // Step 2: Add column to unprocessed_sales table for hashed email.
-        statement.executeUpdate("ALTER TABLE unprocessed_sales ADD COLUMN hashed_email VARBINARY(32)");
+        // Step 2: Load dim_date with desired date range.
+        statement.execute(" SET @startDate = '" + dim_date_start + "'");
+        statement.execute(" SET @endDate = '" + dim_date_end + "'");
+        statement.execute(" Call TEAM_6_DB.create_dimdate(@startDate, @endDate) ");
 
-        // Step 3: Load hash table with emails from unprocessed orders and generate hashed emails.
+        // Step 3: Load dim_supplier with supplier_id from temp_inventory.
+        statement.executeUpdate("INSERT INTO dim_supplier (supplier_id) " +
+                "SELECT DISTINCT supplier_id FROM temp_inventory ");
+
+        // Step 4: Load dim_product with product_id and supplier_id from temp_inventory.
+        statement.executeUpdate("INSERT INTO dim_product (product_id, supplier_id) " +
+                "SELECT DISTINCT product_id, supplier_id FROM temp_inventory ");
+
+        // Step 5: Load dim_product with supplier_tid
+        statement.executeUpdate("UPDATE dim_product dp, dim_supplier ds " +
+                " SET dp.supplier_tid = ds.supplier_tid " +
+                " WHERE dp.supplier_id = ds.supplier_id ");
+
+        // Step 6: Remove supplier_id column from dim_product table.
+        statement.executeUpdate("ALTER TABLE dim_product DROP COLUMN supplier_id ");
+
+        // Step 7: Load inventory from dim_product, dim_supplier, and temp_inventory
+        statement.executeUpdate("INSERT INTO inventory " +
+                "SELECT dp.product_tid, ti.quantity, ti.wholesale_cost, ti.sale_price, ds.supplier_tid " +
+                "FROM temp_inventory ti " +
+                "INNER JOIN dim_product dp ON ti.product_id = dp.product_id " +
+                "INNER JOIN dim_supplier ds ON ti.supplier_id = ds.supplier_id ");
+
+        // Step 8: Drop temp_inventory table (no longer needed).
+        deleteTable("temp_inventory");
+
+        // Step 9: Add column to temp_unprocessed_sales table for hashed email.
+        statement.executeUpdate("ALTER TABLE temp_unprocessed_sales ADD COLUMN hashed_email VARBINARY(32)");
+
+        // Step 10: Load hash table with emails from unprocessed orders and generate hashed emails.
         statement.executeUpdate("INSERT INTO hash_ref (hashed_email, unhashed_email) " +
-                "SELECT DISTINCT MD5(cust_email), cust_email FROM unprocessed_sales");
+                "SELECT DISTINCT MD5(cust_email), cust_email FROM temp_unprocessed_sales");
 
-        // Step 4: Fill with hashed emails from hash table.
-        this.updateTableFromTable("unprocessed_sales", "hash_ref", "hashed_email",
+        // Step 11: Fill with hashed emails from hash table.
+        this.updateTableFromTable("temp_unprocessed_sales", "hash_ref", "hashed_email",
                 "hashed_email", "cust_email", "unhashed_email");
 
-        // Step 5: Delete (unhashed) email column from unprocessed orders.
-        //statement.executeUpdate("ALTER TABLE unprocessed_sales DROP COLUMN cust_email");
+        // Step 12: Delete (unhashed) email column from unprocessed orders.
+        statement.executeUpdate("ALTER TABLE temp_unprocessed_sales DROP COLUMN cust_email");
+
+        //Step 13: Load temp_unprocessed_sales into unprocessed_sales table
+        statement.executeUpdate("INSERT INTO unprocessed_sales " +
+                "SELECT dd.date_id, tus.cust_location, dp.product_tid, tus.product_quantity, tus.hashed_email " +
+                "FROM temp_unprocessed_sales tus " +
+                "INNER JOIN dim_date dd ON tus.date = dd.date_date " +
+                "INNER JOIN dim_product dp ON tus.product_id = dp.product_id ");
+
+        //Step 14: Drop temp_unprocessed_sales table.
+        deleteTable("temp_unprocessed_sales");
 
     }
 
@@ -95,53 +137,42 @@ public class QueryMaker {
      * @throws SQLException
      */
 
-    public void batchProcessing() throws SQLException {
+    public void batchProcessing(int resupply_quantity) throws SQLException {
         // Step 1: Pull inventory table into Java data structure.
-        ResultSet inv = this.readTable("inventory");
-        HashMap<String, Integer> invHashMap = new HashMap<>();
-        String inv_p_id;
-        int inv_quant;
+        ResultSet inv = statement.executeQuery("SELECT product_tid, quantity FROM inventory ");
+        HashMap<Integer, Integer> invHashMap = new HashMap<>();
+        Integer inv_p_tid;
+        Integer inv_quant;
 
         while (inv.next()) {
-            inv_p_id = inv.getString(1);
-            inv_quant = inv.getInt(2);
-            invHashMap.put(inv_p_id, inv_quant);
+            inv_p_tid = Integer.valueOf(inv.getInt(1));
+            inv_quant = Integer.valueOf(inv.getInt(2));
+            invHashMap.put(inv_p_tid, inv_quant);
         }
-        HashMap<String, Integer> invHashMap_original = new HashMap<>();
+        HashMap<Integer, Integer> invHashMap_original = new HashMap<>();
         invHashMap_original.putAll(invHashMap);
 
         // Step 2: Pull unprocessed sales into Java data structure
-        ResultSet us = statement.executeQuery("SELECT DISTINCT date, us.cust_email, us.cust_location, us.product_id, us.product_quantity " +
+        ResultSet us = statement.executeQuery("SELECT date_id, cust_location, product_tid, quantity, hashed_email " +
                 "FROM unprocessed_sales AS us " +
-                "ORDER BY date, us.cust_email");
-        java.sql.Date us_date;
-        String us_email;
+                "ORDER BY date_id, us.hashed_email");
+        int us_date;
         String us_loc;
-        String us_p_id;
+        int us_p_tid;
         int us_quant;
+        String us_email;
         List<Transaction> usList = new ArrayList<>();
 
         while (us.next()) {
-            us_date = us.getDate(1);
-            us_email = us.getString(2);
-            us_loc = us.getString(3);
-            us_p_id = us.getString(4);
-            us_quant = us.getInt(5);
+            us_date = us.getInt(1);
+            us_loc = us.getString(2);
+            us_p_tid = us.getInt(3);
+            us_quant = us.getInt(4);
+            us_email = us.getString(5);
 
-            Transaction transaction = new Transaction(us_date, us_email, us_loc, us_p_id, us_quant);
+            Transaction transaction = new Transaction(us_date, us_loc, us_p_tid, us_quant, us_email);
             usList.add(transaction);
         }
-
-        //Pull historical inventory into Java data structure
-        ResultSet hi = statement.executeQuery("SELECT date, product_id, quantity FROM inv_hist");
-        HashMap<String, String> hi_Map = new HashMap<>();
-
-        while (hi.next()) {
-            hi_Map.put(valueQueryPrep(hi.getString(2)) + "~" + valueQueryPrep(hi.getDate(1)),
-                    valueQueryPrep(hi.getInt(3)));
-        }
-        HashMap<String, String> hi_map_Original = new HashMap<>();
-        hi_map_Original.putAll(hi_Map);
 
         // Step 3: Iteratively compare batch orders to inventory, updating inventory & processed sales Java structures
         int inv_q;
@@ -149,18 +180,22 @@ public class QueryMaker {
         List<String[]> psList = new ArrayList<>();
 
         for (Transaction t : usList) {
-            us_q = t.getProduct_quantity();
-            inv_q = invHashMap.get(t.getProduct_id());
+            us_q = t.getQuantity();
+            inv_q = invHashMap.get(Integer.valueOf(t.getProductID()));
 
             if (us_q <= inv_q) {
-                invHashMap.put(t.getProduct_id(), inv_q - us_q); //enough inventory in stock; process sale
+                invHashMap.put(Integer.valueOf(t.getProductID()), inv_q - us_q); //enough inventory in stock; process sale
                 psList.add(t.processTransaction(1));
-                String temp = valueQueryPrep(t.getProduct_id()) + "~" + valueQueryPrep(t.getDate());
-                hi_Map.put(temp, valueQueryPrep(inv_q - us_q));
-
             } else {
                 psList.add(t.processTransaction(0)); //not enough inventory in stock; order more from supplier
-                invHashMap.put(t.getProduct_id(), resupply_quantity);
+                invHashMap.put(Integer.valueOf(t.getProductID()), resupply_quantity);
+                ResultSet s_tid_rs = statement.executeQuery("SELECT supplier_tid FROM dim_supplier " +
+                        "WHERE product_tid = " + t.getProductID() );
+                int s_tid = 0;
+                while (s_tid_rs.next())
+                    s_tid = s_tid_rs.getInt(1);
+                statement.executeUpdate("INSERT INTO supplier_orders " +
+                        "VALUES( " + t.getDate() + " , " + s_tid + " , " + t.getProductID() + " , " + resupply_quantity + " )");
             }
         }
 
@@ -172,19 +207,9 @@ public class QueryMaker {
                 invHashMap.remove(p.getKey());
         }
 
-        //Step 5: Remove unchanged quantities from historical inventory table to be re-uploaded into SQL table.
-        Iterator iter2 = hi_map_Original.entrySet().iterator();
-        while (iter2.hasNext()) {
-            Map.Entry q = (Map.Entry) iter2.next();
-            if (hi_Map.get(q.getKey()) == q.getValue())
-                hi_Map.remove(q.getKey());
-        }
-
         //Step 6: Create indexed tables to house new inventory and historic inventory values on SQL server side
         createTable("temp_inventory",
-                "product_id VARCHAR(12), new_quantity INT, INDEX temp_product_id_index (product_id)");
-        createTable("temp_hist_inv",
-                "date DATE, product_id VARCHAR(12), new_quantity INT, updated INT, INDEX tempHistIndex (product_id)");
+                "product_tid INT, quantity INT, INDEX temp_product_id_index (product_tid)");
 
         // Step 7: Prepare SQL statement with updated inventory and historic inventory values from Java data structure.
         Iterator it = invHashMap.entrySet().iterator();
@@ -193,12 +218,12 @@ public class QueryMaker {
         while (it.hasNext()) {
             Object[] inv_Arr = new String[2];
             Map.Entry pair = (Map.Entry) it.next();
-            inv_Arr[0] = valueQueryPrep((String) pair.getKey());
-            inv_Arr[1] = valueQueryPrep((int) pair.getValue());
+            inv_Arr[0] = pair.getKey().toString();
+            inv_Arr[1] = pair.getValue().toString();
             inv_Array.add(inv_Arr);
         }
 
-        String[] inv_headers = {"product_id", "new_quantity"};
+        String[] inv_headers = {"product_tid", "quantity"};
         Object[][] inv_objects = new Object[inv_Array.size()][inv_headers.length];
         for (int j = 0; j < inv_objects.length; j++) {
             Object[] element = inv_Array.pop();
@@ -207,48 +232,17 @@ public class QueryMaker {
             }
         }
 
-        Iterator it2 = hi_Map.entrySet().iterator();
-        LinkedList<Object[]> hi_Array = new LinkedList<>();
-
-        while (it2.hasNext()) {
-            Object[] hi_Arr = new String[4];
-            Map.Entry pair = (Map.Entry) it2.next();
-            hi_Arr[0] = StringUtils.substringAfter((String) pair.getKey(), "~");
-            hi_Arr[1] = StringUtils.substringBefore((String) pair.getKey(), "~");
-            hi_Arr[2] = pair.getValue();
-            hi_Arr[3] = valueQueryPrep(1);
-            hi_Array.add(hi_Arr);
-        }
-
-        String[] hi_headers = {"date", "product_id", "new_quantity", "updated"};
-        Object[][] hi_objects = new Object[hi_Array.size()][hi_headers.length];
-        for (int k = 0; k < hi_objects.length; k++) {
-            Object[] element = hi_Array.pop();
-            for (int l = 0; l < hi_headers.length; l++) {
-                hi_objects[k][l] = element[l];
-            }
-        }
-
-        //Step 8: Insert Rows into temp_inventory and temp_hist_inv SQL tables
+        //Step 8: Insert Rows into temp_inventory SQL tables
         this.setTableName("temp_inventory");
         this.insertRows(inv_headers, inv_objects);
-        this.setTableName("temp_hist_inv");
-        this.insertRows(hi_headers, hi_objects);
 
         //Step 9: Optimize batch processing by indexing the temporary table on SQL server side.
 //        statement.executeUpdate("ALTER TABLE temp_inventory ADD INDEX `temp_product_id_index` (`product_id`) ");
 
         //Step 10: Alter inventory & historic inventory with new temporary values
         updateTableFromTable("inventory", "temp_inventory",
-        "quantity", "new_quantity",
-                "product_id", "product_id");
-//        statement.executeUpdate("UPDATE inv_hist ih, temp_hist_inv thi " +
-//                " SET ih.quantity = thi.new_quantity, ih.updated = 1 " +
-//                " WHERE ih.product_id = thi.product_id AND ih.date = thi.date ");
-
-//        statement.executeUpdate("UPDATE inv_hist ih, inventory i, temp_hist_inv thi " +
-//               " SET ih.quantity = i.quantity " +
-//                " WHERE ih.updated = 0 and ih.product_id = i.product_id ");
+        "quantity", "quantity",
+                "product_tid", "product_tid");
 
         //Step 11: Construct second parameter of InsertRows method (2-D Object Array)
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -257,17 +251,17 @@ public class QueryMaker {
         for (String[] s : psList) {
             Object[] strArr = new String[7];
 
-            strArr[0] = valueQueryPrep(java.sql.Date.valueOf(s[0]));
+            strArr[0] = valueQueryPrep(Integer.parseInt(s[0]));
             strArr[1] = valueQueryPrep(LocalDateTime.parse(s[1], formatter));
             strArr[2] = valueQueryPrep(s[2]);
-            strArr[3] = valueQueryPrep(s[3]);
-            strArr[4] = valueQueryPrep(s[4]);
+            strArr[3] = valueQueryPrep(Integer.parseInt(s[3]));
+            strArr[4] = valueQueryPrep(Integer.parseInt(s[4]));
             strArr[5] = valueQueryPrep(Integer.parseInt(s[5]));
-            strArr[6] = valueQueryPrep(Integer.parseInt(s[6]));
+            strArr[6] = valueQueryPrep(s[6]);
             tempArray.add(strArr);
         }
 
-        String[] headers = {"date", "processed_datetime", "unhashed_email", "cust_location", "product_id", "product_quantity", "result"};
+        String[] headers = {"date_id", "processed_dt", "cust_location", "product_tid", "quantity", "result", "hashed_email"};
         Object[][] objects = new Object[tempArray.size()][headers.length];
         for (int j = 0; j < objects.length; j++) {
             Object[] element = tempArray.pop();
@@ -276,35 +270,17 @@ public class QueryMaker {
             }
         }
 
-        //Delete indexes (to speed up trigger).
-        statement.execute(" DROP INDEX histIndex ON inv_hist ");
-        statement.execute(" DROP INDEX ps_index ON processed_sales ");
-
         //Step 12: Insert Rows into processed_sales SQL table
         this.setTableName("processed_sales");
         this.insertRows(headers, objects);
 
-        //Recreate triggers
-        statement.executeUpdate("ALTER TABLE inv_hist ADD INDEX histIndex (product_id, quantity) ");
-        statement.executeUpdate("ALTER TABLE processed_sales ADD INDEX ps_index (product_id) ");
-
         //Step 13: Truncate unprocessed_sales table.
         statement.executeUpdate("TRUNCATE unprocessed_sales");
 
-        //Step 14: Add in hashed emails to processed_sales table
-        statement.executeUpdate("UPDATE processed_sales, hash_ref " +
-                " SET processed_sales.hashed_email = hash_ref.hashed_email " +
-                " WHERE processed_sales.unhashed_email = hash_ref.unhashed_email");
-
-        //Step 15: Truncate unhashed_emails values from processed_sales table
-        statement.executeUpdate("UPDATE processed_sales SET unhashed_email = null ");
 
         //Step 16: Delete the temporary inventory and temporary historic inventory tables
         deleteTable("temp_inventory");
-        deleteTable("temp_hist_inv");
 
-        //Step 17: Modify updated in historical inventory to be all zeros
- //       statement.executeUpdate("UPDATE inv_hist SET updated = 0" );
     }
 
     /**
@@ -319,40 +295,56 @@ public class QueryMaker {
 
     // This method takes in a .csv file and turns it into a 2D array with the specified column types.
     // Making the format compatible for SQL to read
-    public void createDatabaseStructure() throws SQLException, FileNotFoundException {
-        // Step 1: Create Inventory Table in SQL Database.
-        createTable("inventory",
+    public void createDatabaseStructure(String inventory_file) throws SQLException, FileNotFoundException {
+        // Step 1: Create temp_inventory table in SQL Database.
+        createTable("temp_inventory",
                 "product_id VARCHAR(12),quantity INT,wholesale_cost DECIMAL(12,2),sale_price DECIMAL(12,2),supplier_id VARCHAR(8)" +
-                        ", INDEX inv_index (product_id, quantity) ");
+                        ", INDEX t_inv_index (product_id) ");
 
-        // Step 2: Load SQL Inventory table with Java 2-D Array.
-        Object[][] objArr = this.csvToArray("inventory_team6.csv", new int[]{STRING, INT, DOUBLE, DOUBLE, STRING});
-        this.setTableName("inventory");
-        this.insertRows(new String[]{"product_id", "quantity", "wholesale_cost", "sale_price", "supplier_id"}, objArr);
+        // Step 2: Load SQL temp_inventory table with Java 2-D Array.
 
-        //Step 3: Optimize future operations on inventory table by adding SQL index.
- //       statement.executeUpdate("ALTER TABLE inventory ADD INDEX `product_id_index` (`product_id`) ");
+        // Step 3: Create inventory table in SQL database
+        createTable("inventory",
+                "product_tid int, quantity INT, wholesale_cost DECIMAL(12,2), sale_price DECIMAL(12,2), supplier_tid INT" +
+                        ", INDEX inv_index (product_tid) ");
 
-        // Step 4: Create unprocessed_sales Table in SQL Database.
+        // Step 4: Create dim_supplier table in SQL database
+        createTable("dim_supplier",
+            "supplier_tid INT NOT NULL AUTO_INCREMENT, supplier_id VARCHAR(8), INDEX ds_index (supplier_tid)");
+
+        // Step 5: Create dim_product table in SQL database
+        createTable("dim_product",
+                "product_tid INT NOT NULL AUTO_INCREMENT, supplier_tid INT, supplier_id VARCHAR(8), product_id VARCHAR(12), INDEX dp_index (product_tid)");
+
+        // Step 6: Create temp_unprocessed_sales table in SQL database.
+        createTable("temp_unprocessed_sales",
+                "date DATE,cust_email VARCHAR(320),cust_location VARCHAR(5),product_id VARCHAR(12),product_quantity int");
+
+        // Step 6: Create unprocessed_sales table in SQL Database.
         createTable("unprocessed_sales",
-                "date DATE,cust_email VARCHAR(320),cust_location VARCHAR(5),product_id VARCHAR(12),product_quantity int" +
-                        ", INDEX us_index (date, cust_email) ");
+                "date_id INT, cust_location VARCHAR(5), product_tid INT, quantity INT, hashed_email VARBINARY(32)");
 
-        // Step 5: Create hash_ref Table in SQL Database.
+        // Step 7: Create hash_ref table in SQL Database.
         createTable("hash_ref",
-                "hashed_email VARBINARY(32),unhashed_email VARCHAR(320), INDEX hr_index (hashed_email, unhashed_email) ");
+                "hashed_email VARBINARY(32),unhashed_email VARCHAR(320), INDEX hr_index (hashed_email) ");
 
-        // Step 6: Create processed_sales Table in SQL Database.
+        // Step 8: Create processed_sales table in SQL Database.
         createTable("processed_sales",
-                "date DATE,processed_datetime DATETIME,unhashed_email VARCHAR(320), hashed_email VARBINARY(32) NULL," +
-                        "cust_location VARCHAR(5),product_id VARCHAR(12),product_quantity int,result int" +
-                        ", INDEX ps_index (product_id)");
+                "date_id INT,processed_dt DATETIME, cust_location VARCHAR(5),product_tid INT,quantity INT," +
+                        "result TINYINT, hashed_email VARBINARY(32), INDEX ps_index (date_id, product_tid)");
 
-        // Step 7: Create trigger that will update historic inventory as sales are processed.
-        statement.execute("CREATE TRIGGER after_sales_update AFTER INSERT ON processed_sales FOR EACH ROW " +
-                " UPDATE inv_hist  SET quantity = new.product_quantity, updated = 1 WHERE product_id = new.product_id " +
-                " AND date >= new.date ");
+        // Step 9: Create dim_date table in SQL database.
+        createTable("dim_date",
+                "date_id INT NOT NULL AUTO_INCREMENT, date_date DATE, INDEX dd_index (date_id)");
 
+        // Step 10: Create supplier_orders table in SQL database.
+        createTable("supplier_orders",
+                "date_id INT, supplier_tid INT, product_tid INT, quantity INT, INDEX so_index (supplier_tid) ");
+
+        // Step 10: Load temp_inventory table with Java 2-D Array using .csv file for data source.
+        Object[][] objArr = this.csvToArray(inventory_file, new int[]{STRING, INT, DOUBLE, DOUBLE, STRING});
+        this.setTableName("temp_inventory");
+        this.insertRows(new String[]{"product_id", "quantity", "wholesale_cost", "sale_price", "supplier_id"}, objArr);
     }
 
     public void createHistInv() throws SQLException {

@@ -11,6 +11,14 @@ public class Main {
 
         private static LocalTime programStart;
         private static LocalTime programEnd;
+        private final String inventory_file = "inventory_team6.csv";
+        //private final String customer_orders_file = "100Ktesting.csv"; //file to stress test db.
+        //private final String customer_orders_file = "500Ktesting.csv"; //file to stress test db.
+        //private final String customer_orders_file = "1Mtesting.csv"; //file to stress test db.
+        private final String customer_orders_file = "customer_orders_A_team6.csv";
+        private final String dim_date_start = "2020-01-01";
+        private final String dim_date_end = "2020-12-31";
+        private final int resupply_quantity = 500;
 
         public Main() {
 
@@ -24,41 +32,37 @@ public class Main {
         }
 
         public void invoke(Credentials credentials,QueryMaker qm) throws IOException, SQLException, ClassNotFoundException {
-                LocalTime cqmCreation, dbCreation, hiCreation, bLoading, bProcessing, chartDemo, mailServiceDemo, sqlDemo;
+                LocalTime cqmCreation, dbCreation, bLoading, bProcessing, chartDemo, mailServiceDemo;
 
                 //Database re-creation as well as batch (.csv) file loading and processing
                 System.out.println("The Credentials and QueryMaker objects have been created.");
                 cqmCreation = LocalTime.now();
 
-                qm.createDatabaseStructure();
+                qm.createDatabaseStructure(inventory_file);
                 System.out.println("The basic database structure has been created and inventory has been loaded.");
                 dbCreation = LocalTime.now();
 
-//                qm.createHistInv();
-                System.out.println("Historical Inventory table has been created.");
-                hiCreation = LocalTime.now();
-
-                qm.batchLoading();
+                qm.batchLoading(customer_orders_file, dim_date_start, dim_date_end);
                 System.out.println("Batch file loading complete.");
                 bLoading = LocalTime.now();
 
-                qm.batchProcessing();
+                qm.batchProcessing(resupply_quantity);
                 System.out.println("Batch processing complete.");
                 bProcessing = LocalTime.now();
 
 
                 //Chart Demonstration
-                /*
-                System.out.println("\nStarting chart");
-                String title = "CUP'O JAVA ASSETS";
-                TimeSeries_AWT demo = new TimeSeries_AWT(title, credentials, 3);
 
-                demo.pack();
-                RefineryUtilities.positionFrameRandomly(demo);
-                System.out.println("Chart completed");
-                demo.setVisible(true);
-                System.out.println("Chart demonstrations completed.");
-                chartDemo = LocalTime.now();
+//                System.out.println("\nStarting chart");
+//                String title = "CUP'O JAVA ASSETS";
+//                TimeSeries_AWT demo = new TimeSeries_AWT(title, credentials, 3);
+//
+//                demo.pack();
+//                RefineryUtilities.positionFrameRandomly(demo);
+//                System.out.println("Chart completed");
+//                demo.setVisible(true);
+//                System.out.println("Chart demonstrations completed.");
+//                chartDemo = LocalTime.now();
 
 
                 //MailService Demonstration
@@ -87,60 +91,17 @@ public class Main {
 
  //               System.out.println();
 
-                //illustrates use of readRecords with one record result
-                ResultSet rs2 = qm.readRecords("inventory", "product_id", "test1234test");
-                while (rs2.next()) {
-                        String testProdID2 = rs2.getString(1);
-                        int testQuant2 = rs2.getInt(2);
-                        double testWholesale2 = rs2.getDouble(3);
-                        double testSale2 = rs2.getDouble(4);
-                        String testSuppID2 = rs2.getString(5);
- //                       System.out.println("Test Value of 'test1234test' search in inventory spits back:\n" +
- //                               testProdID2 + ", " + testQuant2 + ", " + testWholesale2 + ", " + testSale2 + ", " + testSuppID2);
-                }
 
-//                System.out.println();
 
-                //illustrates use of readRecords with multiple records result
-                ResultSet rs3 = qm.readRecords("inventory", "quantity", "10");
-                while (rs3.next()) {
-                        String testProdID2 = rs3.getString(1);
-                        int testQuant2 = rs3.getInt(2);
-                        double testWholesale2 = rs3.getDouble(3);
-                        double testSale2 = rs3.getDouble(4);
-                        String testSuppID2 = rs3.getString(5);
-//                        System.out.println("Extract records with quantity of '10' from inventory:\n" +
-//                                testProdID2 + ", " + testQuant2 + ", " + testWholesale2 + ", " + testSale2 + ", " + testSuppID2);
-                }
-
-//                System.out.println();
-
-                //illustrates use of readRecords with no matching result in SQL database
-                ResultSet rs4 = qm.readRecords("inventory", "product_id", "test5678test");
-                while (rs4.next()) {
-                        String testProdID2 = rs4.getString(1);
-                        int testQuant2 = rs4.getInt(2);
-                        double testWholesale2 = rs4.getDouble(3);
-                        double testSale2 = rs4.getDouble(4);
-                        String testSuppID2 = rs4.getString(5);
-//                        System.out.println("Test Value of 'test1234test' search in inventory spits back:\n" +
-//                                testProdID2 + ", " + testQuant2 + ", " + testWholesale2 + ", " + testSale2 + ", " + testSuppID2);
-                }
-
-                System.out.println("Sample Java-SQL demonstrations completed.");
-                sqlDemo = LocalTime.now();
-                */
 
 
                 programEnd = LocalTime.now();
                 System.out.println("\nDatabase authentication/connection took " + programStart.until(cqmCreation, SECONDS) + " seconds.");
                 System.out.println("Database creation took " + cqmCreation.until(dbCreation, SECONDS) + " seconds.");
-                System.out.println("Historical Inventory table creation and initial load took " + dbCreation.until(hiCreation, SECONDS) + " seconds.");
-                System.out.println("Batch (.csv) loading took " + hiCreation.until(bLoading, SECONDS) + " seconds.");
+                System.out.println("Batch (.csv) loading took " + dbCreation.until(bLoading, SECONDS) + " seconds.");
                 System.out.println("Batch (.csv) processing took " + bLoading.until(bProcessing, SECONDS) + " seconds.");
- //               System.out.println("Chart demonstration took " + bProcessing.until(chartDemo, SECONDS) + " seconds.");
- //               System.out.println("Mail Service demonstration took " + chartDemo.until(mailServiceDemo, SECONDS) + " seconds.");
- //               System.out.println("SQL in Java demonstration took " + mailServiceDemo.until(sqlDemo, SECONDS) + " seconds.");
+//                System.out.println("Chart demonstration took " + bProcessing.until(chartDemo, SECONDS) + " seconds.");
+                System.out.println("Mail Service demonstration took " + bProcessing.until(mailServiceDemo, SECONDS) + " seconds.");
                 System.out.println("Total program execution took " + programStart.until(programEnd, SECONDS) + " seconds.");
         }
 }
