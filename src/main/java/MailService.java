@@ -195,7 +195,7 @@ public class MailService {
                             objArr[l][3] = qm.valueQueryPrep(messageProductID.poll());
                             objArr[l][4] = messageQuantity.poll();
                         }
-                        qm.setTableName("unprocessed_sales");
+                        qm.setTableName("temp_unprocessed_sales");
                         qm.insertRows(headers, objArr);
 
                         // Send email stating order received

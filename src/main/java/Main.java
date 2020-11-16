@@ -12,10 +12,10 @@ public class Main {
         private static LocalTime programStart;
         private static LocalTime programEnd;
         private final String inventory_file = "inventory_team6.csv";
-        //private final String customer_orders_file = "100Ktesting.csv"; //file to stress test db.
+        private final String customer_orders_file = "100Ktesting.csv"; //file to stress test db.
         //private final String customer_orders_file = "500Ktesting.csv"; //file to stress test db.
         //private final String customer_orders_file = "1Mtesting.csv"; //file to stress test db.
-        private final String customer_orders_file = "customer_orders_A_team6.csv";
+        //private final String customer_orders_file = "customer_orders_A_team6.csv";
         private final String dim_date_start = "2020-01-01";
         private final String dim_date_end = "2020-12-31";
         private final int resupply_quantity = 500;
@@ -67,33 +67,12 @@ public class Main {
 
                 //MailService Demonstration
 
-                MailService mail = new MailService();
-                System.out.println("\nReading emails");
-                mail.readEmail(credentials, qm);
-                System.out.println("Emails read");
-                System.out.println("Mail Service demonstrations completed.\n");
+//                MailService mail = new MailService();
+//                System.out.println("\nReading emails");
+//                mail.readEmail(credentials, qm);
+//                System.out.println("Emails read");
+//                System.out.println("Mail Service demonstrations completed.\n");
                 mailServiceDemo = LocalTime.now();
-
-
-                //SQL-Java method demonstrations
-
-                //used in illustrations below - not intended for production code
-                qm.generateUpdate("INSERT INTO inventory VALUES (\"test1234test\", 10, 1.01, 2.02, \"testsupp\")");
-
-//                System.out.println();
-
-                //illustrates use of readValues
-                ResultSet rs = qm.readValues("quantity", "inventory", "product_id = " + qm.valueQueryPrep("test1234test"));
-                while (rs.next()) {
-                        int testQuant1 = rs.getInt(1);
-//                        System.out.println("The quantity of Product \"test1234test\" in 'inventory' is " + testQuant1);
-                }
-
- //               System.out.println();
-
-
-
-
 
                 programEnd = LocalTime.now();
                 System.out.println("\nDatabase authentication/connection took " + programStart.until(cqmCreation, SECONDS) + " seconds.");
