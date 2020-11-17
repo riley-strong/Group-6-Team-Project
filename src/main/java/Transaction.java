@@ -4,7 +4,7 @@ import java.time.format.DateTimeFormatter;
 public class Transaction {
 
     //variable initialization for headers needed in transaction
-    private int date_id;
+    private java.sql.Date date_id;
     private String cust_location;
     private int product_tid;
     private int quantity;
@@ -12,13 +12,13 @@ public class Transaction {
 
     /**
      * Constructor with parameters (assuming all params provided)
-     *  @param date_id  int
+     *  @param date_id  java.sql.Date
      * @param cust_location  customer location; String type
      * @param product_tid  id representing product in SQL database
      * @param quantity  product quantity; initial value must be integer >= 0
      * @param hashed_email  Hashed String representing customer email in SQL database
      */
-    public Transaction(int date_id, String cust_location, int product_tid, int quantity, String hashed_email){
+    public Transaction(java.sql.Date date_id, String cust_location, int product_tid, int quantity, String hashed_email){
         setDate(date_id);
         setCustLocation(cust_location); ;
         setProductID(product_tid);
@@ -46,7 +46,7 @@ public class Transaction {
      *
      * @return LocalDate
      */
-    public int getDate() { return this.date_id; }
+    public java.sql.Date getDate() { return this.date_id; }
 
     /**
      *
@@ -85,7 +85,7 @@ public class Transaction {
      *
      * @param date_id id representing date in SQL table; int type
      */
-    public void setDate(int date_id) {
+    public void setDate(java.sql.Date date_id) {
         this.date_id = date_id;
     }
 

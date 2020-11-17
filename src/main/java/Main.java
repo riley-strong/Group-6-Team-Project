@@ -12,7 +12,7 @@ public class Main {
         private static LocalTime programStart;
         private static LocalTime programEnd;
         private final String inventory_file = "inventory_team6.csv";
-        private final String customer_orders_file = "100Ktesting.csv"; //file to stress test db.
+        private final String customer_orders_file = "10Ktesting.csv"; //file to stress test db.
         //private final String customer_orders_file = "500Ktesting.csv"; //file to stress test db.
         //private final String customer_orders_file = "1Mtesting.csv"; //file to stress test db.
         //private final String customer_orders_file = "customer_orders_A_team6.csv";
