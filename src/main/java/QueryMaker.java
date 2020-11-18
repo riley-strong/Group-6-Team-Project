@@ -1,5 +1,3 @@
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.*;
@@ -11,6 +9,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.*;
+import static java.time.temporal.ChronoUnit.DAYS;
 
 
 public class QueryMaker {
@@ -360,6 +359,7 @@ public class QueryMaker {
      */
 
     public void deleteRows() throws SQLException {
+
         generateUpdate("DELETE FROM " + tableName);
     }
 
@@ -434,6 +434,18 @@ public class QueryMaker {
         return data;
     }
 
+    public void generateDailyAssets(String start, String end) throws SQLException {
+        LocalDate start_ld = LocalDate.of(Integer.parseInt(start.substring(6)), Integer.parseInt(start.substring(0, 2)), Integer.parseInt(start.substring(3, 5)));
+        LocalDate end_ld = LocalDate.of(Integer.parseInt(end.substring(6)), Integer.parseInt(end.substring(0, 2)), Integer.parseInt(end.substring(3, 5)));
+        int stopPoint = (int) DAYS.between(start_ld, end_ld) + 1;
+        for (int i = 0; i < stopPoint; i++) {
+            statement.executeUpdate("CALL TEAM_6_DB.generateDailyAssets( '" + start_ld.toString() + "')");
+            start_ld = start_ld.plusDays(1);
+        }
+
+
+    }
+
     /**
      * given an argument (any SQL statement) it will return a table of useful data
      *
@@ -479,6 +491,24 @@ public class QueryMaker {
             columnNames[j] = rs.getString(1);
         }
         return columnNames;
+    }
+
+    public ArrayList<Object[]> getDailyAssets(String start, String end) throws SQLException {
+        LocalDate start_ld = LocalDate.of(Integer.parseInt(start.substring(6)), Integer.parseInt(start.substring(0, 2)), Integer.parseInt(start.substring(3, 5)));
+        LocalDate end_ld = LocalDate.of(Integer.parseInt(end.substring(6)), Integer.parseInt(end.substring(0, 2)), Integer.parseInt(end.substring(3, 5)));
+
+        statement.executeUpdate("SET @startDate = '" + start_ld.toString() + "'");
+        statement.executeUpdate("SET @endDate = '" + end_ld.toString() + "'");
+        ResultSet rs = statement.executeQuery("call TEAM_6_DB.specificDailyAssets(@startDate, @endDate)");
+
+        ArrayList<Object[]> al = new ArrayList<>();
+        while (rs.next()) {
+            Object[] arr = new Object[2];
+            arr[0] = rs.getDate(1).toLocalDate().toString();
+            arr[1] = rs.getDouble(2);
+            al.add(arr);
+        }
+        return al;
     }
 
     /**
