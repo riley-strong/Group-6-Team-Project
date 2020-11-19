@@ -212,7 +212,7 @@ public class MailService {
                 }
             }
 
-            // Now that all of the inbox's email have been read, remove canceled orders, and send the orders to
+            // Now that all of the inbox's email have been read, remove canceled orders, and send the orders to mySQL
             // Iterate through the list of orders, if the email associated with that order is in our list of emails that sent a cancellation order, remove that order
             Iterator ordersIter = orders.iterator();
             while (ordersIter.hasNext()){
