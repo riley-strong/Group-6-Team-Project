@@ -7,6 +7,7 @@ public class Transaction {
     private java.sql.Date date_id;
     private String cust_location;
     private int product_tid;
+    private String product_id;
     private int quantity;
     private String hashed_email;
 
@@ -22,6 +23,14 @@ public class Transaction {
         setDate(date_id);
         setCustLocation(cust_location); ;
         setProductID(product_tid);
+        setQuantity(quantity);
+        setCustEmail(hashed_email);
+    }
+
+    public Transaction(java.sql.Date date_id, String cust_location, String product_id, int quantity, String hashed_email){
+        setDate(date_id);
+        setCustLocation(cust_location); ;
+        setProductID(product_id);
         setQuantity(quantity);
         setCustEmail(hashed_email);
     }
@@ -52,10 +61,13 @@ public class Transaction {
      *
      * @return Product ID
      */
-    public int getProductID() {
+    public int getProduct_TID() {
         return this.product_tid;
     }
 
+    public String getProduct_ID(){
+        return this.product_id;
+    }
     /**
      *
      * @return Product Quantity
@@ -97,6 +109,10 @@ public class Transaction {
         this.product_tid = product_tid;
     }
 
+    public void setProductID(String product_id){
+        this.product_id = product_id;
+    }
+
     /**
      *
      * @param quantity Product Quantity; int type
@@ -112,7 +128,7 @@ public class Transaction {
         String dt_staging = dt.format(formatter);
         String dt_result = dt_staging;
 
-        return new String[]{String.valueOf(getDate()), dt_result, getCustLocation(), String.valueOf(getProductID()),
+        return new String[]{String.valueOf(getDate()), dt_result, getCustLocation(), String.valueOf(getProduct_TID()),
                 String.valueOf(getQuantity()), Integer.toString(x), getCustEmail()};
     }
 }

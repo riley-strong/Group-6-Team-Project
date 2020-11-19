@@ -18,7 +18,7 @@ public class MailService {
      * @param emailBody    String
      * @return a value of the primitive type boolean
      */
-    private boolean sendConfirmation(Credentials credentials,String emailAddress, String emailBody){
+    private boolean sendEmail(Credentials credentials, String emailAddress, String emailBody){
 
         String from = credentials.getEmail();
         String host = "smtp.gmail.com";
@@ -71,13 +71,13 @@ public class MailService {
         } catch(NullPointerException e) {
             return false;
         }
-        if (Integer.parseInt(location) < 1000)
+        if (location.length() != 5)
             return false;
 
         //Ensures productID is in our database
         while (messageProductID.peek() != null){
             String productID = messageProductID.poll();
-            if (!(qm.valueExists("product_id", "inventory", productID)))
+            if (!(qm.valueExists("product_id", "dim_product", productID)))
                 return false;
         }
 
@@ -91,6 +91,8 @@ public class MailService {
             } catch(NullPointerException e) {
                 return false;
             }
+            if (Integer.parseInt(quantity) <= 0)
+                return false;
         }
         return true;
     }
@@ -121,6 +123,12 @@ public class MailService {
             FlagTerm unseenFlagTerm = new FlagTerm(seen, false);
             //searching for the unseen messages in the e-mail folder
             Message[] messages = emailFolder.search(unseenFlagTerm);
+
+            // LinkedList of Transaction object, will be a list of individual orders
+            LinkedList<Transaction> orders = new LinkedList<>();
+            // LinkedList of emails that wish to cancel their pending orders
+            LinkedList<String> canceled_Orders = new LinkedList<>();
+
             for (int i = 0, n = messages.length; i < n; i++) {
                 Message message = messages[i];
                 message.getFlags();
@@ -151,11 +159,16 @@ public class MailService {
                     Queue<String> messageQuantity = new LinkedList<>(); // Stores order's quantity
                     String[] emailInput = messageContent.split(","); //Splits CSV formatted email into text fields
 
+                    // Obtains and reformats sender's email
+                    String sender = message.getFrom()[0].toString();
+                    sender = sender.substring(sender.indexOf("<") + 1, sender.indexOf(">"));
+
                     //Cancellation email is caught here
-                    // TODO: 11/9/20 Implement handling cancellation orders by removing the respective orders from unprocessed_sales
                     if (emailInput[0].trim().equalsIgnoreCase("cancel")){
-                        System.out.println("place holder for an email to cancel");
-                        return;
+                        System.out.println("Cancellation Email");
+                        if (!(canceled_Orders.contains(sender)))
+                            canceled_Orders.add(sender);
+                        continue;
                     }
 
                     // Obtain location from email, should be just very first field
@@ -163,51 +176,70 @@ public class MailService {
 
                     // Email is divided into inputs and stored in its respective queue
                     for (int k = 1; k < emailInput.length; k = k + 2){
-                        messageProductID.add(emailInput[k]);
+                        messageProductID.add(emailInput[k].trim());
                         messageQuantity.add((emailInput[k+1]).trim());
                     }
 
                     // Validates email's input
                     if (validateEmail(location, new LinkedList<>(messageProductID), new LinkedList<>(messageQuantity), qm)) {
 
-                        // Obtains date from gmail API and reformats it for mySQL
                         System.out.println("Valid order from email");
+
+                        // Obtains date from gmail API and reformats it for mySQL
                         String date;
                         
                         //Deprecated methods are use here because the "new" methods display the day of the week and the month name instead of the corresponding numbers
                         date = message.getSentDate().getYear() + "";
                         date = "20" + date.substring(1) + "-" + message.getSentDate().getMonth() + "-" + message.getSentDate().getDate();
 
-                        // Obtains and reformats sender's email
-                        String sender = message.getFrom()[0].toString();
-                        sender = sender.substring(sender.indexOf("<") + 1, sender.indexOf(">"));
-
                         // Copy of all of the products order in a single email to be included in the confirmation email
                         String products = messageProductID.toString();
 
-                        // 2-D object array to insert all of the orders in a single email to mySQL
-                        String[] headers = "date,cust_email,cust_location,product_id,product_quantity".split(",");
-                        Object[][] objArr = new Object[messageProductID.size()][5];
-                        for (int l = 0; messageProductID.peek() != null; l ++) {
-                            objArr[l][0] = qm.valueQueryPrep(date);
-                            objArr[l][1] = qm.valueQueryPrep(sender);
-                            objArr[l][2] = location;
-                            objArr[l][3] = qm.valueQueryPrep(messageProductID.poll());
-                            objArr[l][4] = messageQuantity.poll();
+                        // Add validated orders in the email to a list utilizing the transaction class
+                        while (messageProductID.peek() != null) {
+                            orders.add(new Transaction(java.sql.Date.valueOf(date), location, messageProductID.poll(),  Integer.parseInt(messageQuantity.poll()), sender ));
                         }
-                        qm.setTableName("temp_unprocessed_sales");
-                        qm.insertRows(headers, objArr);
 
                         // Send email stating order received
-                        sendConfirmation(credentials, message.getFrom()[0].toString(),"Order received. Your order will be stored to be processed\n" + "Your order included these products:\n"   + products);
+                        sendEmail(credentials, message.getFrom()[0].toString(),"Order received. Your order will be stored to be processed\n" + "Your order included these products:\n"   + products);
                     }
+
                     // One of the orders is invalid, email stating this is sent
                     else {
                         System.out.println("Invalid order from email");
-                        sendConfirmation(credentials, message.getFrom()[0].toString(),"Order not received. One of the inputs is invalid\n" + "The products you attempted to order:\n"  + messageProductID);
+                        sendEmail(credentials, message.getFrom()[0].toString(),"Order not received. One of the inputs is invalid\n" + "The products you attempted to order:\n"  + messageProductID);
                     }
                 }
             }
+
+            // Now that all of the inbox's email have been read, remove canceled orders, and send the orders to
+            // Iterate through the list of orders, if the email associated with that order is in our list of emails that sent a cancellation order, remove that order
+            Iterator ordersIter = orders.iterator();
+            while (ordersIter.hasNext()){
+                Transaction t = (Transaction) ordersIter.next();
+                if (canceled_Orders.contains(t.getCustEmail())) {
+                    System.out.println("Order removed due to cancellation email");
+                    sendEmail(credentials, t.getCustEmail(), "Your order for " + t.getProduct_ID() + " has been canceled");
+                    ordersIter.remove();
+                }
+            }
+
+            // 2-D object array to insert all of the orders from all of the emails currently in the inbox to mySQL
+            if (!(orders.isEmpty())) {
+                String[] headers = "date,cust_email,cust_location,product_id,product_quantity".split(",");
+                Object[][] objArr = new Object[orders.size()][5];
+                for (int l = 0; l < orders.size(); l++) {
+                    objArr[l][0] = qm.valueQueryPrep(orders.get(l).getDate());
+                    objArr[l][1] = qm.valueQueryPrep(orders.get(l).getCustEmail());
+                    objArr[l][2] = orders.get(l).getCustLocation();
+                    objArr[l][3] = qm.valueQueryPrep(orders.get(l).getProduct_ID());
+                    objArr[l][4] = orders.get(l).getQuantity();
+                }
+                qm.setTableName("temp_unprocessed_sales");
+                qm.insertRows(headers, objArr);
+                System.out.println("Orders put to 'temp_unprocessed_sales'");
+            }
+
             emailFolder.close(false);
             store.close();
 

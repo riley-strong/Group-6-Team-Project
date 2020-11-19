@@ -133,21 +133,21 @@ public class QueryMaker {
         while (us_iter.hasNext()) {
             Transaction t = (Transaction) us_iter.next();
             us_q = t.getQuantity();
-            inv_q = invHashMap.get(t.getProductID());
+            inv_q = invHashMap.get(t.getProduct_TID());
 
             if (us_q <= inv_q) {
-                invHashMap.put(t.getProductID(), inv_q - us_q); //enough inventory in stock; process sale
+                invHashMap.put(t.getProduct_TID(), inv_q - us_q); //enough inventory in stock; process sale
                 psList.add(t.processTransaction(1));
             } else {
                 psList.add(t.processTransaction(0)); //not enough inventory in stock; order more from supplier
-                invHashMap.put(t.getProductID(), inv_q + resupply_quantity);
+                invHashMap.put(t.getProduct_TID(), inv_q + resupply_quantity);
                 ResultSet s_tid_rs = statement.executeQuery("SELECT supplier_tid FROM dim_product " +
-                        "WHERE product_tid = " + t.getProductID() );
+                        "WHERE product_tid = " + t.getProduct_TID() );
                 int s_tid = 0;
                 s_tid_rs.next();
                 s_tid = s_tid_rs.getInt(1);
                 statement.executeUpdate("INSERT INTO supplier_orders " +
-                        "VALUES( " + valueQueryPrep(t.getDate()) + " , " + s_tid + " , " + t.getProductID() + " , " + resupply_quantity + " )");
+                        "VALUES( " + valueQueryPrep(t.getDate()) + " , " + s_tid + " , " + t.getProduct_TID() + " , " + resupply_quantity + " )");
             }
         }
 
