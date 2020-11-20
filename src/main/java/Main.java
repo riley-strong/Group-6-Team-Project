@@ -41,7 +41,7 @@ public class Main {
                 System.out.println("Batch file loading complete.");
                 bLoading = LocalTime.now();
 
-                qm.batchProcessing(resupply_quantity);
+                qm.batchProcessing(resupply_quantity, 1);
                 System.out.println("Batch processing complete.");
                 bProcessing = LocalTime.now();
 
@@ -73,7 +73,8 @@ public class Main {
 //                mail.readEmail(credentials, qm);
 //                System.out.println("Emails read");
                 qm.processEmails();
-                qm.batchProcessing(resupply_quantity);
+                qm.batchProcessing(resupply_quantity, 2);
+
 //                System.out.println("Mail Service demonstrations completed.\n");
 //                mailServiceDemo = LocalTime.now();
 

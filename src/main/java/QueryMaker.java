@@ -85,7 +85,7 @@ public class QueryMaker {
      * @throws SQLException
      */
 
-    public void batchProcessing(int resupply_quantity) throws SQLException {
+    public void batchProcessing(int resupply_quantity, int platform) throws SQLException {
         int z = 0;
         System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         // Step 1: Pull inventory table into Java data structure.
@@ -232,6 +232,10 @@ public class QueryMaker {
         //Step 11: Insert Rows into processed_sales SQL table
         this.setTableName("processed_sales");
         this.insertRows(headers, objects);
+
+        //Step 11.5: If email orders, add to daily assets file:
+        if (platform == 2)
+            statement.execute("CALL TEAM_6_DB.emailAssetAddition()");
 
         System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         //Step 12: Truncate unprocessed_sales table.
