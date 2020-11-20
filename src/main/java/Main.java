@@ -1,13 +1,8 @@
-import org.jfree.data.time.Millisecond;
-import org.jfree.ui.RefineryUtilities;
-
 import java.io.IOException;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalTime;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
-import static java.time.temporal.ChronoUnit.SECONDS;
 
 public class Main {
 
@@ -57,9 +52,9 @@ public class Main {
 
                 //Chart Demonstration
 
-//                System.out.println("\nStarting chart");
-//                String title = "CUP'O JAVA ASSETS";
-//                TimeSeries_AWT demo = new TimeSeries_AWT(title, credentials, 3);
+                System.out.println("\nStarting chart");
+                String title = "CUP'O JAVA ASSETS";
+                TimeSeries_AWT demo = new TimeSeries_AWT(title, credentials, 3);
 //
 //                demo.pack();
 //                RefineryUtilities.positionFrameRandomly(demo);
@@ -70,11 +65,15 @@ public class Main {
 
 
                 //MailService Demonstration
+                qm.createTable("temp_unprocessed_sales",
+                        "date DATE ,cust_email VARCHAR(320) ,cust_location VARCHAR(5) ,product_id VARCHAR(12) ,product_quantity INT");
 
 //                MailService mail = new MailService();
 //                System.out.println("\nReading emails");
 //                mail.readEmail(credentials, qm);
 //                System.out.println("Emails read");
+                qm.processEmails();
+                qm.batchProcessing(resupply_quantity);
 //                System.out.println("Mail Service demonstrations completed.\n");
 //                mailServiceDemo = LocalTime.now();
 

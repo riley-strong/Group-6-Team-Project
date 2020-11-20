@@ -13,16 +13,18 @@ import java.sql.*;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class TimeSeries_AWT extends ApplicationFrame {
-
 
         //private static Connection connection;
         private static Statement statement;
         private final int assets = 1;
         private final int dailyOrders = 2;
         private final int dailyPurchase = 3;
+        private final QueryMaker qm;
 //        private static Object JDBCTutorialUtilities;
 //        private PreparedStatement preparedStatement;
 //        private ResultSet tempRS;
@@ -30,7 +32,7 @@ public class TimeSeries_AWT extends ApplicationFrame {
 
     public TimeSeries_AWT(String title, Credentials credentials, int op) throws IOException, SQLException, ClassNotFoundException {
         super(title);
-        QueryMaker qm = credentials.getQueryMaker();
+        qm = credentials.getQueryMaker();
         statement = qm.statement;
         XYDataset dataset = createDataset(op);
         JFreeChart chart = createChart(dataset, op);
@@ -43,14 +45,18 @@ public class TimeSeries_AWT extends ApplicationFrame {
 
     private XYDataset createDataset(int op) throws SQLException {
         TimeSeries series = null;
+        ArrayList<Object[]> al = new ArrayList<>();
+        //TODO: Gather a date range from user in the format of yyyy-mm-dd
+        String start = "2020-01-01";
+        String end = "2020-06-28";
+
         // SQL Step 1: Company Assets (1 cell value)
         if(op == 1) {
 
-            ResultSet rs = statement.executeQuery("SELECT SUM(CAST(wholesale_cost * quantity AS DECIMAL (64,2))) FROM inventory");
+            //TODO: Iterate through ArrayList to get elements & add to TimeSeries
+            al = qm.getAnalyticsData(start, end, assets);
 
-            while (rs.next()) {
-                double totalAssets = rs.getDouble(1);
-            }
+
             series = new TimeSeries( "Assets" );
             //Add bar chart instead of Timeseries
 
@@ -59,22 +65,9 @@ public class TimeSeries_AWT extends ApplicationFrame {
 
         // SQL Step 2: Daily Orders
         else if(op == 2) {
-            ResultSet rs2 = statement.executeQuery("SELECT '30', '12', DAY(date), MONTH(date), YEAR(date), count(product_id) " +
-                    "FROM processed_sales " +
-                    "GROUP BY '30', '12', DAY(date), MONTH(date), YEAR(date) " +
-                    "ORDER BY '30', '12', MONTH(date), DAY(date), YEAR(date)");
+            //TODO: Iterate through ArrayList to get elements & add to TimeSeries
+            al = qm.getAnalyticsData(start, end, dailyOrders);
 
-
-            LinkedList<int[]> dailyOrder = new LinkedList<>();
-
-            while (rs2.next()) {
-                int[] arr = new int[6];
-                for (int i = 0; i < 6; i++) {
-                    arr[i] = rs2.getInt(i + 1);
-                }
-
-                dailyOrder.add(arr);
-            }// End while
             series = new TimeSeries("Daily Orders");
             for(int[] i : dailyOrder){
                 series.add(new Minute( i[0], i[1], i[2], i[3], i[4]), i[5]);
@@ -84,23 +77,9 @@ public class TimeSeries_AWT extends ApplicationFrame {
 
             // SQL Step 3: Daily Purchase Totals
         else if(op == 3){
-            ResultSet rs3 = statement.executeQuery("SELECT '30', '12', DAY(date), MONTH(date), YEAR(date), sum(CAST(ps.product_quantity * i.sale_price AS DECIMAL (64, 2))) " +
-                    "FROM processed_sales ps " +
-                    "INNER JOIN inventory i on ps.product_id = i.product_id " +
-                    "GROUP BY '30', '12', DAY(date), MONTH(date), YEAR(date) " +
-                    "ORDER BY '30', '12', MONTH(date), DAY(date), YEAR(date)");
+            //TODO: Iterate through ArrayList to get elements & add to TimeSeries
+            al = qm.getAnalyticsData(start, end, dailyPurchase);
 
-            LinkedList<double[]> dailyPurchase = new LinkedList<double[]>();
-
-            while (rs3.next()) {
-                double[] arr = new double[6];
-                for (int i = 0; i < 6; i++) {
-                    arr[i] = rs3.getDouble(i + 1);
-                }
-
-                dailyPurchase.add(arr);
-
-            }// End while
             series = new TimeSeries( "Daily Purchase" );
 
             for(double[] i : dailyPurchase){

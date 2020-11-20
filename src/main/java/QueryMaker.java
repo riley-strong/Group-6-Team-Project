@@ -493,20 +493,55 @@ public class QueryMaker {
         return columnNames;
     }
 
-    public ArrayList<Object[]> getDailyAssets(String start, String end) throws SQLException {
+    public ArrayList<Object[]> getAnalyticsData(String start, String end, int choice) throws SQLException {
         LocalDate start_ld = LocalDate.of(Integer.parseInt(start.substring(6)), Integer.parseInt(start.substring(0, 2)), Integer.parseInt(start.substring(3, 5)));
         LocalDate end_ld = LocalDate.of(Integer.parseInt(end.substring(6)), Integer.parseInt(end.substring(0, 2)), Integer.parseInt(end.substring(3, 5)));
+        ArrayList<Object[]> al = new ArrayList<>();
 
         statement.executeUpdate("SET @startDate = '" + start_ld.toString() + "'");
         statement.executeUpdate("SET @endDate = '" + end_ld.toString() + "'");
-        ResultSet rs = statement.executeQuery("call TEAM_6_DB.specificDailyAssets(@startDate, @endDate)");
+        Object[] arr = new Object[6];
+        if (choice == 1) {
+            ResultSet rs = statement.executeQuery("call TEAM_6_DB.specificDailyAssets(@startDate, @endDate)");
 
-        ArrayList<Object[]> al = new ArrayList<>();
-        while (rs.next()) {
-            Object[] arr = new Object[2];
-            arr[0] = rs.getDate(1).toLocalDate().toString();
-            arr[1] = rs.getDouble(2);
-            al.add(arr);
+            while (rs.next()) {
+                arr = new Object[6];
+                arr[0] = rs.getInt(1);
+                arr[1] = rs.getInt(2);
+                arr[2] = rs.getInt(3);
+                arr[3] = rs.getInt(4);
+                arr[4] = rs.getInt(5);
+                arr[5] = rs.getDouble(6);
+                al.add(arr);
+            }
+        }
+        else if (choice == 2) {
+            ResultSet rs = statement.executeQuery("call TEAM_6_DB.daily_orders(@startDate, @endDate)");
+
+            while (rs.next()) {
+                arr = new Object[6];
+                arr[0] = rs.getInt(1);
+                arr[1] = rs.getInt(2);
+                arr[2] = rs.getInt(3);
+                arr[3] = rs.getInt(4);
+                arr[4] = rs.getInt(5);
+                arr[5] = rs.getInt(6);
+                al.add(arr);
+            }
+        }
+        else if (choice == 3) {
+            ResultSet rs = statement.executeQuery("call TEAM_6_DB.daily_purchases(@startDate, @endDate)");
+
+            while (rs.next()) {
+                arr = new Object[6];
+                arr[0] = rs.getInt(1);
+                arr[1] = rs.getInt(2);
+                arr[2] = rs.getInt(3);
+                arr[3] = rs.getInt(4);
+                arr[4] = rs.getInt(5);
+                arr[5] = rs.getDouble(6);
+                al.add(arr);
+            }
         }
         return al;
     }
@@ -601,6 +636,10 @@ public class QueryMaker {
 
     public void insertValuesIntoTable(String tableName, String columnNames, String values) throws SQLException {
         statement.executeUpdate("INSERT INTO " + tableName + " ( " + columnNames + " ) VALUES ( " + values + " ) ");
+    }
+
+    public void processEmails() throws SQLException {
+        statement.execute("CALL TEAM_6_DB.emailLoading();");
     }
 
     /**
