@@ -17,9 +17,19 @@ public class Credentials {
     private String emailPassword;
     private QueryMaker queryMaker;
 
+    /**
+     * Constructor for credentials login
+     */
+
     public Credentials() {
         new Login(this);
     }
+
+    /**
+     * @return a new queryMaker
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
 
     public QueryMaker getQueryMaker() throws SQLException, ClassNotFoundException {
         if (queryMaker != null)
@@ -29,14 +39,19 @@ public class Credentials {
     }
 
     /**
-     * Return our burner email address
+     * @return email address
      */
+
     public String getEmail() {
 
         return emailAddress;
     }
 
-    public String getEmailPassword(){
+    /**
+     * @return emails password
+     */
+
+    public String getEmailPassword() {
         return emailPassword;
     }
 
@@ -54,8 +69,11 @@ public class Credentials {
     }
 
     /**
-     * Return our burner email's inbox
+     * @param session
+     * @return the inbox given the email login credentials using a new session
+     * @throws MessagingException
      */
+
     public Message[] getMessages(Session session)
             throws MessagingException {
 
@@ -74,8 +92,9 @@ public class Credentials {
     }
 
     /**
-     * Return a new email session
+     * @return Using the java mail it will connection to the Gmail smtp server
      */
+
     public Session getSession() {
 
         Properties properties = new Properties();
@@ -92,6 +111,10 @@ public class Credentials {
         });
     }
 
+    /**
+     * Creates string array of credentials for login
+     */
+
     private class Login {
         String[] fields =
                 new String[]{
@@ -104,6 +127,14 @@ public class Credentials {
                         "Email Password"
                 };
         JFrame loginFrame = new JFrame("Credentials");
+
+        /**
+         * Creates a user friendly interface for logging into the database and Gmail accounts simultaneously
+         * This login is required for every debug/ run
+         * This eliminates security risks by having the credentials stored only on local machines
+         *
+         * @param credentials The GUI interface takes on the credentials argument which allocates where the credentials belong
+         */
 
         public Login(Credentials credentials) {
             JPanel panel = new JPanel(new GridBagLayout());
