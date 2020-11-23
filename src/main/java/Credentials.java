@@ -8,8 +8,6 @@ import java.util.Arrays;
 import java.util.Properties;
 
 public class Credentials {
-    private final int EMAIL_ADDRESS = 5;
-    public static final int EMAIL_PASSWORD = 6;
     private String databaseIPAddress;
     private String databasePassword;
     private String databasePort;
@@ -154,6 +152,7 @@ public class Credentials {
                             );
                     emailAddress = emailAddressField.getText();
                     emailPassword = String.valueOf(emailPasswordField.getPassword());
+
                     new Main().invoke(credentials, queryMaker);
                 } catch (SQLException | ClassNotFoundException | FileNotFoundException throwables) {
                     throwables.printStackTrace();
