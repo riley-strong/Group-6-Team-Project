@@ -53,45 +53,6 @@ public class Credentials {
         return null;
     }
 
-    /**
-     * Return our burner email's inbox
-     */
-    public Message[] getMessages(Session session)
-            throws MessagingException {
-
-        Properties pro = System.getProperties();
-        pro.setProperty("mail.store.protocol", "imaps");
-        try {
-            Store store = session.getStore("imaps");
-            store
-                    .connect("imap.gmail.com", emailAddress, emailPassword);
-            Folder inbox = store.getFolder("Inbox");
-            inbox.open(Folder.READ_WRITE);
-            return inbox.getMessages();
-        } catch (MessagingException e) {
-            throw new MessagingException();
-        }
-    }
-
-    /**
-     * Return a new email session
-     */
-    public Session getSession() {
-
-        Properties properties = new Properties();
-        properties.put("mail.smtp.auth", "true");
-        properties.put("mail.smtp.starttls.enable", "true");
-        properties.put("mail.smtp.host", "smtp.gmail.com");
-        properties.put("mail.smtp.port", "587");
-        return Session.getInstance(properties, new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-
-                return new PasswordAuthentication(emailAddress, emailPassword);
-            }
-        });
-    }
-
     private class Login {
         String[] fields =
                 new String[]{

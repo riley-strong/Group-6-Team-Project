@@ -1,3 +1,5 @@
+import org.jfree.ui.RefineryUtilities;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalTime;
@@ -45,7 +47,7 @@ public class Main {
                 System.out.println("Batch processing complete.");
                 bProcessing = LocalTime.now();
 
-                qm.generateDailyAssets("01/01/2020", "06/28/2020");
+                qm.generateDailyAssets("01/01/2020", "06/28/2020Two modules in a project cannot share the same content root.");
                 System.out.println("Daily assets loaded.");
                 dAssets = LocalTime.now();
 
@@ -55,13 +57,13 @@ public class Main {
                 System.out.println("\nStarting chart");
                 String title = "CUP'O JAVA ASSETS";
                 TimeSeries_AWT demo = new TimeSeries_AWT(title, credentials, 3);
-//
-//                demo.pack();
-//                RefineryUtilities.positionFrameRandomly(demo);
-//                System.out.println("Chart completed");
-//                demo.setVisible(true);
-//                System.out.println("Chart demonstrations completed.");
-//                chartDemo = LocalTime.now();
+
+                demo.pack();
+                RefineryUtilities.positionFrameRandomly(demo);
+                System.out.println("Chart completed");
+                demo.setVisible(true);
+                System.out.println("Chart demonstrations completed.");
+                chartDemo = LocalTime.now();
 
 
                 //MailService Demonstration

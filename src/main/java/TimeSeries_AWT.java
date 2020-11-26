@@ -59,7 +59,9 @@ public class TimeSeries_AWT extends ApplicationFrame {
 
             series = new TimeSeries( "Assets" );
             //Add bar chart instead of Timeseries
-
+            for(Object[] i : al){
+                series.add(new Minute( (int) i[0], (int) i[1], (int) i[2], (int) i[3], (int) i[4]), (double) i[5]);
+            }
 
         }
 
@@ -69,8 +71,8 @@ public class TimeSeries_AWT extends ApplicationFrame {
             al = qm.getAnalyticsData(start, end, dailyOrders);
 
             series = new TimeSeries("Daily Orders");
-            for(int[] i : dailyOrder){
-                series.add(new Minute( i[0], i[1], i[2], i[3], i[4]), i[5]);
+            for(Object[] i : al){
+                series.add(new Minute( (int) i[0], (int) i[1], (int) i[2], (int) i[3], (int) i[4]), (double) i[5]);
             }
 
         }// End Daily Orders
@@ -82,8 +84,8 @@ public class TimeSeries_AWT extends ApplicationFrame {
 
             series = new TimeSeries( "Daily Purchase" );
 
-            for(double[] i : dailyPurchase){
-                series.add(new Minute((int) i[0],(int) i[1],(int) i[2],(int) i[3],(int) i[4]), i[5]);
+            for(Object[] i : al){
+                series.add(new Minute((int) i[0],(int) i[1],(int) i[2],(int) i[3],(int) i[4]), (Double) i[5]);
             }
         }//End else
 
