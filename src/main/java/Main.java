@@ -47,7 +47,7 @@ public class Main {
                 System.out.println("Batch processing complete.");
                 bProcessing = LocalTime.now();
 
-                qm.generateDailyAssets("01/01/2020", "06/28/2020Two modules in a project cannot share the same content root.");
+                //qm.generateDailyAssets("01/01/2020", "06/28/2020");
                 System.out.println("Daily assets loaded.");
                 dAssets = LocalTime.now();
 
@@ -56,7 +56,7 @@ public class Main {
 
                 System.out.println("\nStarting chart");
                 String title = "CUP'O JAVA ASSETS";
-                TimeSeries_AWT demo = new TimeSeries_AWT(title, credentials, 3);
+                TimeSeries_AWT demo = new TimeSeries_AWT(title, credentials, 2);
 
                 demo.pack();
                 RefineryUtilities.positionFrameRandomly(demo);
@@ -74,8 +74,8 @@ public class Main {
 //                System.out.println("\nReading emails");
 //                mail.readEmail(credentials, qm);
 //                System.out.println("Emails read");
-                qm.processEmails();
-                qm.batchProcessing(resupply_quantity, 2);
+//                qm.processEmails();
+//                qm.batchProcessing(resupply_quantity, 2);
 
 //                System.out.println("Mail Service demonstrations completed.\n");
 //                mailServiceDemo = LocalTime.now();

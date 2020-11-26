@@ -446,8 +446,6 @@ public class QueryMaker {
             statement.executeUpdate("CALL TEAM_6_DB.generateDailyAssets( '" + start_ld.toString() + "')");
             start_ld = start_ld.plusDays(1);
         }
-
-
     }
 
     /**
@@ -498,8 +496,8 @@ public class QueryMaker {
     }
 
     public ArrayList<Object[]> getAnalyticsData(String start, String end, int choice) throws SQLException {
-        LocalDate start_ld = LocalDate.of(Integer.parseInt(start.substring(6)), Integer.parseInt(start.substring(0, 2)), Integer.parseInt(start.substring(3, 5)));
-        LocalDate end_ld = LocalDate.of(Integer.parseInt(end.substring(6)), Integer.parseInt(end.substring(0, 2)), Integer.parseInt(end.substring(3, 5)));
+        LocalDate start_ld = LocalDate.parse(start);
+        LocalDate end_ld = LocalDate.parse(end);
         ArrayList<Object[]> al = new ArrayList<>();
 
         statement.executeUpdate("SET @startDate = '" + start_ld.toString() + "'");
