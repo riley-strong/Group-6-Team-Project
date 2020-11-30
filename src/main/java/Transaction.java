@@ -13,7 +13,6 @@ public class Transaction {
 
     /**
      * Constructor with parameters (assuming all params provided)
-     *  @param date_id  java.sql.Date
      * @param cust_location  customer location; String type
      * @param product_tid  id representing product in SQL database
      * @param quantity  product quantity; initial value must be integer >= 0

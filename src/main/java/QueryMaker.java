@@ -85,7 +85,7 @@ public class QueryMaker {
      * @throws SQLException
      */
 
-    public void batchProcessing(int resupply_quantity) throws SQLException {
+    public void batchProcessing(int resupply_quantity, int platform) throws SQLException {
         int z = 0;
         System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         // Step 1: Pull inventory table into Java data structure.
@@ -232,6 +232,10 @@ public class QueryMaker {
         //Step 11: Insert Rows into processed_sales SQL table
         this.setTableName("processed_sales");
         this.insertRows(headers, objects);
+
+        //Step 11.5: If email orders, add to daily assets file:
+        if (platform == 2)
+            statement.execute("CALL TEAM_6_DB.emailAssetAddition()");
 
         System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         //Step 12: Truncate unprocessed_sales table.
@@ -442,8 +446,6 @@ public class QueryMaker {
             statement.executeUpdate("CALL TEAM_6_DB.generateDailyAssets( '" + start_ld.toString() + "')");
             start_ld = start_ld.plusDays(1);
         }
-
-
     }
 
     /**
@@ -493,20 +495,52 @@ public class QueryMaker {
         return columnNames;
     }
 
-    public ArrayList<Object[]> getDailyAssets(String start, String end) throws SQLException {
-        LocalDate start_ld = LocalDate.of(Integer.parseInt(start.substring(6)), Integer.parseInt(start.substring(0, 2)), Integer.parseInt(start.substring(3, 5)));
-        LocalDate end_ld = LocalDate.of(Integer.parseInt(end.substring(6)), Integer.parseInt(end.substring(0, 2)), Integer.parseInt(end.substring(3, 5)));
+    public ArrayList<Object[]> getAnalyticsData(String start, String end, int choice) throws SQLException {
+        LocalDate start_ld = LocalDate.parse(start);
+        LocalDate end_ld = LocalDate.parse(end);
+        ArrayList<Object[]> al = new ArrayList<>();
 
         statement.executeUpdate("SET @startDate = '" + start_ld.toString() + "'");
         statement.executeUpdate("SET @endDate = '" + end_ld.toString() + "'");
-        ResultSet rs = statement.executeQuery("call TEAM_6_DB.specificDailyAssets(@startDate, @endDate)");
+        Object[] arr = new Object[6];
+        if (choice == 1) {
+            ResultSet rs = statement.executeQuery("call TEAM_6_DB.specificDailyAssets(@startDate, @endDate)");
 
-        ArrayList<Object[]> al = new ArrayList<>();
-        while (rs.next()) {
-            Object[] arr = new Object[2];
-            arr[0] = rs.getDate(1).toLocalDate().toString();
-            arr[1] = rs.getDouble(2);
-            al.add(arr);
+            while (rs.next()) {
+                arr = new Object[6];
+                for (int i = 0; i < arr.length; i++) {
+                    if (i < arr.length - 1)
+                        arr[i] = rs.getInt(i + 1);
+                    else
+                        arr[i] = rs.getDouble(i + 1);
+                }
+                al.add(arr);
+            }
+        }
+        else if (choice == 2) {
+            ResultSet rs = statement.executeQuery("call TEAM_6_DB.daily_orders(@startDate, @endDate)");
+
+            while (rs.next()) {
+                arr = new Object[6];
+                for (int i = 0; i < arr.length; i++){
+                    arr[i] = rs.getInt(i + 1);
+                }
+                al.add(arr);
+            }
+        }
+        else if (choice == 3) {
+            ResultSet rs = statement.executeQuery("call TEAM_6_DB.daily_purchases(@startDate, @endDate)");
+
+            while (rs.next()) {
+                arr = new Object[6];
+                for (int i = 0; i < arr.length; i++) {
+                    if (i < arr.length - 1)
+                        arr[i] = rs.getInt(i + 1);
+                    else
+                        arr[i] = rs.getDouble(i + 1);
+                }
+                al.add(arr);
+            }
         }
         return al;
     }
@@ -601,6 +635,10 @@ public class QueryMaker {
 
     public void insertValuesIntoTable(String tableName, String columnNames, String values) throws SQLException {
         statement.executeUpdate("INSERT INTO " + tableName + " ( " + columnNames + " ) VALUES ( " + values + " ) ");
+    }
+
+    public void processEmails() throws SQLException {
+        statement.execute("CALL TEAM_6_DB.emailLoading();");
     }
 
     /**
