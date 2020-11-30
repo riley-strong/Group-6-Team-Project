@@ -508,12 +508,12 @@ public class QueryMaker {
 
             while (rs.next()) {
                 arr = new Object[6];
-                arr[0] = rs.getInt(1);
-                arr[1] = rs.getInt(2);
-                arr[2] = rs.getInt(3);
-                arr[3] = rs.getInt(4);
-                arr[4] = rs.getInt(5);
-                arr[5] = rs.getDouble(6);
+                for (int i = 0; i < arr.length; i++) {
+                    if (i < arr.length - 1)
+                        arr[i] = rs.getInt(i + 1);
+                    else
+                        arr[i] = rs.getDouble(i + 1);
+                }
                 al.add(arr);
             }
         }
@@ -522,12 +522,9 @@ public class QueryMaker {
 
             while (rs.next()) {
                 arr = new Object[6];
-                arr[0] = rs.getInt(1);
-                arr[1] = rs.getInt(2);
-                arr[2] = rs.getInt(3);
-                arr[3] = rs.getInt(4);
-                arr[4] = rs.getInt(5);
-                arr[5] = rs.getInt(6);
+                for (int i = 0; i < arr.length; i++){
+                    arr[i] = rs.getInt(i + 1);
+                }
                 al.add(arr);
             }
         }
@@ -536,12 +533,12 @@ public class QueryMaker {
 
             while (rs.next()) {
                 arr = new Object[6];
-                arr[0] = rs.getInt(1);
-                arr[1] = rs.getInt(2);
-                arr[2] = rs.getInt(3);
-                arr[3] = rs.getInt(4);
-                arr[4] = rs.getInt(5);
-                arr[5] = rs.getDouble(6);
+                for (int i = 0; i < arr.length; i++) {
+                    if (i < arr.length - 1)
+                        arr[i] = rs.getInt(i + 1);
+                    else
+                        arr[i] = rs.getDouble(i + 1);
+                }
                 al.add(arr);
             }
         }

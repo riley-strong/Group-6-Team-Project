@@ -53,33 +53,33 @@ public class TimeSeries_AWT extends ApplicationFrame {
         // SQL Step 1: Company Assets (1 cell value)
         if(op == 1) {
 
-            //TODO: Iterate through ArrayList to get elements & add to TimeSeries
+            //TODOd: Iterate through ArrayList to get elements & add to TimeSeries
             al = qm.getAnalyticsData(start, end, assets);
 
 
             series = new TimeSeries( "Assets" );
             //Add bar chart instead of Timeseries
             for(Object[] i : al){
-                series.add(new Minute( (int) i[0], (int) i[1], (int) i[2], (int) i[3], (int) i[4]), (double) i[5]);
+                series.add(new Minute( (int) i[0], (int) i[1], (int) i[2], (int) i[3], (int) i[4]), (Double) i[5]);
             }
 
         }
 
         // SQL Step 2: Daily Orders
         else if(op == 2) {
-            //TODO: Iterate through ArrayList to get elements & add to TimeSeries
+            //TODOd: Iterate through ArrayList to get elements & add to TimeSeries
             al = qm.getAnalyticsData(start, end, dailyOrders);
 
             series = new TimeSeries("Daily Orders");
             for(Object[] i : al){
-                series.add(new Minute( (int) i[0], (int) i[1], (int) i[2], (int) i[3], (int) i[4]), (double) i[5]);
+                series.add(new Minute( (int) i[0], (int) i[1], (int) i[2], (int) i[3], (int) i[4]), (int) i[5]);
             }
 
         }// End Daily Orders
 
             // SQL Step 3: Daily Purchase Totals
         else if(op == 3){
-            //TODO: Iterate through ArrayList to get elements & add to TimeSeries
+            //TODOd: Iterate through ArrayList to get elements & add to TimeSeries
             al = qm.getAnalyticsData(start, end, dailyPurchase);
 
             series = new TimeSeries( "Daily Purchase" );
