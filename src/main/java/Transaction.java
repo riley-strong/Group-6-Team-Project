@@ -61,7 +61,7 @@ public class Transaction {
     }
 
     /**
-     * @return LocalDate
+     * @return java.sql.Date
      */
 
     public java.sql.Date getDate() { return this.date_id; }
