@@ -470,7 +470,7 @@ public class QueryMaker {
      */
 
     public String[] getColumnNames() throws SQLException {
-        ResultSet rs = generateQuery("SELECT `COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_SCHEMA`='TEAM_6' AND `TABLE_NAME`='" + this.tableName + "'");
+        ResultSet rs = generateQuery("SELECT `COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_SCHEMA`='TEAM_6_DB' AND `TABLE_NAME`='" + this.tableName + "'");
         String[] columnNames = new String[rowCountResults(rs)];
         for (int j = 0; rs.next(); j++) {
             columnNames[j] = rs.getString(1);
