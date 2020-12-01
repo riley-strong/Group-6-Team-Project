@@ -14,7 +14,7 @@ class QueryMakerTest {
     private QueryMaker qm;
 
     QueryMakerTest() throws SQLException, ClassNotFoundException, FileNotFoundException {
-
+//reading the credentials  from text file
         File myObj = new File("sample");
         Scanner myReader = new Scanner(myObj);
         String userName = myReader.nextLine();
@@ -26,81 +26,78 @@ class QueryMakerTest {
         qm = new QueryMaker(userName,password,ipAddress, portNumber, databaseName );
     }
 
-    //todo
-    @Test
-    void batchLoading() {
-    }
 
-    @Test
-    void batchProcessing() {
-    }
-    //todo
-    @Test
-    void contains() throws SQLException {
-        String productID = "GL6NZYQCJO9J";
-        String badProductID = "GL6NZYQCJO9k";
-        ResultSet rs = qm.generateQuery("SELECT * FROM inventory WHERE product_id = '" + productID + "'");
-        assertNotEquals(badProductID, productID);
-    }
 
     @Test
     void createDatabaseStructure() throws FileNotFoundException, SQLException {
-        qm.createDatabaseStructure();
+      qm.createDatabaseStructure("inventory_team6.csv");
+        ResultSet rs = qm.generateQuery("SELECT * FROM temp_inventory");
+        assertTrue(rs.next());
 
     }
-
+//creates a table and and check if the table existed
     @Test
     void createTable() throws SQLException {
-        qm.createTable("abc", "PersonID int, LastName varchar(255), FirstName varchar(255), Address varchar(255), City varchar(255))");
-        //boolean test =  qm.generateQuery("select * from abc");
-        //assertTrue(test);
-        qm.deleteTable("abc");
+        qm.createTable("temp", "date date, cust_email VARCHAR(320), product_id VARCHAR(12), Total_Purchase DECIMAL (64, 2)");
+        try{
+            ResultSet rs = qm.generateQuery("SELECT * FROM temp");
+
+        }
+        catch (Exception e){
+
+            assertTrue(false);
+        }
+        qm.deleteTable("temp");
 
 
     }
-    //todo
+
+    /**
+     * read csv file
+     * insert it in to array
+     * check if the csv file matches what is in the array
+     * @throws FileNotFoundException
+     */
     @Test
-    void csvToArray() {
+    void csvToArray() throws FileNotFoundException {
+        Scanner fileReader = new Scanner(new File("inventory_team6.csv"));
+        fileReader.nextLine();
+        Object[] objArr1 = fileReader.nextLine().split(",");
+
+        Object[][] objArr = qm.csvToArray("inventory_team6.csv", new int[]{3, 0, 0, 0, 0});
+
+        Object IdFromTestMothod = objArr[0][0];
+        Object IdFromFile = "'" +objArr1[0]+"'";
+        if(IdFromFile.equals(IdFromTestMothod)){
+            assertTrue(true);
+        }
+        else {
+            assertTrue(false);
+        }
     }
 
     @Test
     void deleteRecords() throws SQLException {
 
+        qm.generateUpdate("Drop table if exists Testtable;");
+        qm.generateUpdate("CREATE TEMPORARY TABLE Testtable (product_id varchar(16), quantity int(16));");
+
         String[] columnHeader = new String[]{"product_id", "quantity"};
         Object[][] columnValues = new Object[][]{
-                new Object[]{"'2BTACVxEM9CB'", 2925}
+                new Object[]{"'2BTACVJEM9CB'", 2925}
         };
-        qm.setTableName("inventory");
+        qm.setTableName("Testtable");
         qm.insertRows(columnHeader, columnValues);
-        qm.deleteRecords("inventory", "product_id", "2BTACVxEM9CB");
+        qm.deleteRecords("Testtable", "quantity", 2925);
 
-        ResultSet resultSet = qm.generateQuery(("select * from inventory where product_id = 2BTACVxEM9CB"));
+        ResultSet resultSet = qm.generateQuery(("select * from Testtable where product_id = 2BTACVxEM9CB"));
 
         assertTrue(!resultSet.next());
 
 
     }
 
-    @Test
-    void testDeleteRecords1() {
-    }
 
-
-    @Test
-    void testDeleteRecords() throws SQLException {
-
-        String[] columnHeader = new String[]{"product_id", "quantity"};
-        Object[][] columnValues = new Object[][]{
-                new Object[]{"'2BTACVxEM9CB'", 2925}
-        };
-        qm.setTableName("inventory");
-        qm.insertRows(columnHeader, columnValues);
-        qm.deleteRecords("inventory", "product_id", "2BTACVxEM9CB");
-
-        ResultSet resultSet =  qm.generateQuery(("select * from inventory where product_id = 2BTACVxEM9CB"));
-
-        assertTrue(!resultSet.next());
-    }
 
 
     @Test
@@ -132,31 +129,80 @@ class QueryMakerTest {
 
         assertTrue(!resultSet.next());
     }
+
     //todo
     @Test
-    void deleteTableWithCond() {
+    void extractResults() throws SQLException {
+
+        qm.generateUpdate("Drop table if exists Testtable;");
+        qm.generateUpdate("CREATE TEMPORARY TABLE Testtable (product_id varchar(16), quantity int(16));");
+
+        String[] columnHeader = new String[]{"product_id", "quantity"};
+        Object[][] columnValues = new Object[][]{
+                new Object[]{"'2BTACVJEM9CB'", 2925}
+        };
+        qm.setTableName("Testtable");
+        qm.insertRows(columnHeader, columnValues);
+        ResultSet rs =  qm.generateQuery("select * from Testtable");
+
+        Object[][] objArr = qm.extractResults(rs, false);
+
+
+       if(objArr.length >0){
+            assertTrue(true);
+        }
+        else {
+            assertTrue(false);
+        }
+
+        qm.deleteTable("Testtable");
     }
     //todo
     @Test
-    void extractResults() {
-    }
-    //todo
-    @Test
-    void generateQuery() {
+    void generateQuery() throws SQLException {
+        qm.generateUpdate("Drop table if exists Testtable;");
+        qm.generateUpdate("CREATE TEMPORARY TABLE Testtable (product_id varchar(16), quantity int(16));");
+
+        String[] columnHeader = new String[]{"product_id", "quantity"};
+        Object[][] columnValues = new Object[][]{
+                new Object[]{"'2BTACVJEM9CB'", 2925}
+        };
+        qm.setTableName("Testtable");
+        qm.insertRows(columnHeader, columnValues);
+
+        ResultSet resultSet =  qm.generateQuery("select * from Testtable");
+        if(resultSet.next()){
+            assertTrue(true);
+        }
+        else {
+            assertTrue(false);
+        }
+
+        qm.deleteTable("Testtable");
+
+
+
     }
 
     @Test
-    void generateUpdate() {
+    void generateUpdate() throws SQLException {
 
     }
 
     @Test
     void getColumnNames() throws SQLException {
-        Set<String> staticArrayHeaders = Set.of(new String[]
-                {"product_id", "quantity", "wholesale_cost", "sale_price", "supplier_id"});
-        qm.setTableName("inventory");
-        Set<String> queryHeaders = Set.of(qm.getColumnNames());
-        assertEquals(staticArrayHeaders, queryHeaders);
+        qm.generateUpdate("Drop table if exists Testtable;");
+        qm.generateUpdate("CREATE TABLE Testtable (product_id varchar(16), quantity int(16));");
+
+        String[] columnHeader = new String[]{"product_id", "quantity"};
+        Object[][] columnValues = new Object[][]{
+                new Object[]{"'2BTACVJEM9CB'", 2925}
+        };
+        qm.setTableName("temp_inventory");
+        qm.insertRows(columnHeader, columnValues);
+
+        String[] queryHeaders = qm.getColumnNames();
+        assertEquals(columnHeader, queryHeaders);
 
     }
 
@@ -179,7 +225,10 @@ class QueryMakerTest {
     }
 
 
-
+    /**
+     * set a table name t2
+     * run getTableName and compare it with actual table name
+     */
     @Test
     void getTableName() {
         qm.setTableName("t2");
@@ -189,44 +238,70 @@ class QueryMakerTest {
 
     }
 
+    /**
+     * create a tamp table
+     * add product in to table
+     * check if the product exist in the table
+     * @throws FileNotFoundException
+     * @throws SQLException
+     */
     @Test
     void insertRows() throws FileNotFoundException, SQLException {
-        qm.generateUpdate("DELETE FROM inventory WHERE product_id='2BTCEM9CB'");
+        qm.generateUpdate("Drop table if exists Testtable;");
+        qm.generateUpdate("CREATE TEMPORARY TABLE Testtable (product_id varchar(16), quantity int(16));");
 
-        Object[][] objArr = qm.csvToArray("inventory_team6.csv", new int[]{0,1, 2,2,0});
 
+        String[] columnHeader = new String[]{"product_id", "quantity"};
         Object[][] columnValues = new Object[][]{
-                new Object[]{"'2BTCEM9CB'", 2925, 32.2, 365.2,"'supplier'"},
+                new Object[]{"'2BTACVJEM9CB'", 2925}
         };
-        qm.setTableName("inventory");
-        qm.insertRows(new String[]{"product_id","quantity","wholesale_cost","sale_price","supplier_id"},columnValues);
+        qm.setTableName("Testtable");
+        qm.insertRows(columnHeader, columnValues);
 
-        Object[][] rows = qm.getProduct("inventory", "product_id", "2BTCEM9CB");
+        ResultSet resultSet =  qm.generateQuery("select * from Testtable");
+        if(resultSet.next()){
+            assertTrue(true);
+        }
+        else {
+            assertTrue(false);
+        }
 
-        assertEquals("2BTCEM9CB", rows[0][0].toString());
-        qm.generateUpdate("DELETE FROM  inventory WHERE product_id='2BTCEM9CB'");
 
-    }
-
-
-
-    @Test
-    void insertRecordIntoTable() {
 
     }
 
-    @Test
-    void insertValuesIntoTable() {
-    }
+    /**
+     * create  a tamp table
+     * add a product with id and quantity
+     * check if the product exist in the table and matches expected product by id by running readRecords
+     * @throws SQLException
+     */
+
 
     @Test
     void readRecords() throws SQLException {
-        ResultSet rs =  qm.readRecords("inventory","product_id","GL6NZYQCJO9J");
+
+        qm.generateUpdate("Drop table if exists Testtable;");
+        qm.generateUpdate("CREATE TEMPORARY TABLE Testtable (product_id varchar(16), quantity int(16));");
+
+
+        String[] columnHeader = new String[]{"product_id", "quantity"};
+        Object[][] columnValues = new Object[][]{
+                new Object[]{"'2BTACVJEM9CB'", 2925}
+        };
+        qm.setTableName("Testtable");
+        qm.insertRows(columnHeader, columnValues);
+        ResultSet rs =  qm.readRecords("Testtable","product_id","2BTACVJEM9CB");
         if(rs.next()){
-            assertEquals("GL6NZYQCJO9J", rs.getString("product_id"));
+            assertEquals("2BTACVJEM9CB", rs.getString("product_id"));
         }
     }
-
+/**
+ * drop a table if it exist
+ * creat a temp table Testtable
+ * add product with id and quantity
+ * check if rs matches the actual number od products add into the table
+ */
     @Test
     void readTable() throws SQLException {
 
@@ -250,19 +325,36 @@ class QueryMakerTest {
         }
         assertEquals(3, count);
     }
-    //todo
+
+/**
+ * drop a table if it exist
+ * creat a temp table Testtable
+ * add product with id and quantity
+ * check if rowCoutResult matches the actual number od products add into the table
+ */
     @Test
-    void readTableWithCond() {
-    }
-    //todo
-    @Test
-    void readValues() {
-    }
-    //todo
-    @Test
-    void rowCountResults() {
+    void rowCountResults() throws SQLException {
+        qm.generateUpdate("Drop table if exists Testtable;");
+        qm.generateUpdate("CREATE TEMPORARY TABLE Testtable (product_id varchar(16), quantity int(16));");
+
+
+        String[] columnHeader = new String[]{"product_id", "quantity"};
+        Object[][] columnValues = new Object[][]{
+                new Object[]{"'2BTACVJEM9CB'", 2925},
+                new Object[]{"'2BTKCVJEM9CB'", 2925},
+                new Object[]{"'2BTACVJEJ9CB'", 2925}
+        };
+        qm.setTableName("Testtable");
+        qm.insertRows(columnHeader, columnValues);
+        ResultSet rs = qm.generateQuery("select * from Testtable");
+
+       assertEquals(qm.rowCountResults(rs), 3);
     }
 
+    /**
+     * assign a table name
+     * run setTableName, and check if the setTableName matches the assigned table
+     */
     @Test
     void setTableName() {
 
@@ -272,10 +364,12 @@ class QueryMakerTest {
         assertEquals(tableName, qm.getTableName());
     }
 
-    //todo
-    @Test
-    void topTenCustomers() {
-    }
+    /**
+     * creat temporary tables Testabletable1, and 2
+     * load a product into table1
+     * run updateTableFromTable and check if that trsfared product existed in table2
+     * @throws SQLException
+     */
 
     @Test
     void updateTableFromTable() throws SQLException {
@@ -287,8 +381,6 @@ class QueryMakerTest {
         String[] columnHeader = new String[]{"product_id", "quantity"};
         Object[][] columnValues = new Object[][]{
                 new Object[]{"'2BTACVJEM9CB'", 2925},
-                new Object[]{"'2BTKCVJEM9CB'", 2925},
-                new Object[]{"'2BTACVJEJ9CB'", 2925}
         };
         qm.setTableName("Testtable1");
         qm.insertRows(columnHeader, columnValues);
@@ -309,10 +401,13 @@ class QueryMakerTest {
         }
 
     }
-    //todo
-    @Test
-    void updateTableFromStatic() {
-    }
+
+    /**
+     * creat a tamp table
+     * add a product with id and quantity
+     * run valueExist and check if the product existed in the new table
+     * @throws SQLException
+     */
 
     @Test
     void valueExists() throws SQLException {
@@ -323,49 +418,11 @@ class QueryMakerTest {
         String[] columnHeader = new String[]{"product_id", "quantity"};
         Object[][] columnValues = new Object[][]{
                 new Object[]{"'2BTACVJEM9CB'", 2925},
-                new Object[]{"'2BTKCVJEM9CB'", 2925},
-                new Object[]{"'2BTACVJEJ9CB'", 2925}
         };
         qm.setTableName("Testtable");
         qm.insertRows(columnHeader, columnValues);
         assertTrue(qm.valueExists("quantity","Testtable",2925));
 
-    }
-
-    @Test
-    void testValueExists() {
-    }
-
-    @Test
-    void testValueExists1() {
-    }
-
-    @Test
-    void valueQueryPrep() {
-    }
-
-    @Test
-    void testValueQueryPrep() {
-    }
-
-    @Test
-    void testValueQueryPrep1() {
-    }
-
-    @Test
-    void testValueQueryPrep2() {
-    }
-
-    @Test
-    void testValueQueryPrep3() {
-    }
-
-    @Test
-    void testValueQueryPrep4() {
-    }
-
-    @Test
-    void main() {
     }
 }
 
