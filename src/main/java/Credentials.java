@@ -17,9 +17,19 @@ public class Credentials {
     private String emailPassword;
     private QueryMaker queryMaker;
 
+    /**
+     * Constructor for credentials login
+     */
+
     public Credentials() {
         new Login(this);
     }
+
+    /**
+     * @return a new queryMaker
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
 
     public QueryMaker getQueryMaker() throws SQLException, ClassNotFoundException {
         if (queryMaker != null)
@@ -29,14 +39,19 @@ public class Credentials {
     }
 
     /**
-     * Return our burner email address
+     * @return email address
      */
+
     public String getEmail() {
 
         return emailAddress;
     }
 
-    public String getEmailPassword(){
+    /**
+     * @return emails password
+     */
+
+    public String getEmailPassword() {
         return emailPassword;
     }
 
@@ -53,6 +68,7 @@ public class Credentials {
         return null;
     }
 
+
     private class Login {
         String[] fields =
                 new String[]{
@@ -65,6 +81,14 @@ public class Credentials {
                         "Email Password"
                 };
         JFrame loginFrame = new JFrame("Credentials");
+
+        /**
+         * Creates a user friendly interface for logging into the database and Gmail accounts simultaneously
+         * This login is required for every debug/ run
+         * This eliminates security risks by having the credentials stored only on local machines
+         *
+         * @param credentials The GUI interface takes on the credentials argument which allocates where the credentials belong
+         */
 
         public Login(Credentials credentials) {
             JPanel panel = new JPanel(new GridBagLayout());
