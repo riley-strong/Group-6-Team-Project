@@ -1,30 +1,27 @@
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
-import org.jfree.data.general.SeriesException;
-import org.jfree.data.time.*;
+import org.jfree.data.time.Minute;
+import org.jfree.data.time.TimeSeries;
+import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.ApplicationFrame;
-import org.jfree.ui.RefineryUtilities;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartUtilities;
-import java.sql.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.*;
-import java.time.LocalDate;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 public class TimeSeries_AWT extends ApplicationFrame {
 
-        //private static Connection connection;
-        private static Statement statement;
-        private final int assets = 1;
-        private final int dailyOrders = 2;
-        private final int dailyPurchase = 3;
-        private final QueryMaker qm;
+    //private static Connection connection;
+    private static Statement statement;
+    private final int assets = 1;
+    private final int dailyOrders = 2;
+    private final int dailyPurchase = 3;
+    private final QueryMaker qm;
 //        private static Object JDBCTutorialUtilities;
 //        private PreparedStatement preparedStatement;
 //        private ResultSet tempRS;
@@ -33,13 +30,13 @@ public class TimeSeries_AWT extends ApplicationFrame {
     public TimeSeries_AWT(String title, Credentials credentials, int op) throws IOException, SQLException, ClassNotFoundException {
         super(title);
         qm = credentials.getQueryMaker();
-        statement = qm.statement;
+        statement = QueryMaker.statement;
         XYDataset dataset = createDataset(op);
         JFreeChart chart = createChart(dataset, op);
         ChartPanel chartPanel = new ChartPanel(chart);
-        chartPanel.setPreferredSize( new java.awt.Dimension( 560 , 370 ) );
-        chartPanel.setMouseZoomable(true ,false);
-        setContentPane( chartPanel );
+        chartPanel.setPreferredSize(new java.awt.Dimension(560, 370));
+        chartPanel.setMouseZoomable(true, false);
+        setContentPane(chartPanel);
         ChartUtilities.saveChartAsPNG(new File("line_chart.png"), chart, 450, 400);
     }
 
@@ -51,41 +48,41 @@ public class TimeSeries_AWT extends ApplicationFrame {
         String end = "2020-06-28";
 
         // SQL Step 1: Company Assets (1 cell value)
-        if(op == 1) {
+        if (op == 1) {
 
             //TODOd: Iterate through ArrayList to get elements & add to TimeSeries
             al = qm.getAnalyticsData(start, end, assets);
 
 
-            series = new TimeSeries( "Assets" );
+            series = new TimeSeries("Assets");
             //Add bar chart instead of Timeseries
-            for(Object[] i : al){
-                series.add(new Minute( (int) i[0], (int) i[1], (int) i[2], (int) i[3], (int) i[4]), (Double) i[5]);
+            for (Object[] i : al) {
+                series.add(new Minute((int) i[0], (int) i[1], (int) i[2], (int) i[3], (int) i[4]), (Double) i[5]);
             }
 
         }
 
         // SQL Step 2: Daily Orders
-        else if(op == 2) {
+        else if (op == 2) {
             //TODOd: Iterate through ArrayList to get elements & add to TimeSeries
             al = qm.getAnalyticsData(start, end, dailyOrders);
 
             series = new TimeSeries("Daily Orders");
-            for(Object[] i : al){
-                series.add(new Minute( (int) i[0], (int) i[1], (int) i[2], (int) i[3], (int) i[4]), (int) i[5]);
+            for (Object[] i : al) {
+                series.add(new Minute((int) i[0], (int) i[1], (int) i[2], (int) i[3], (int) i[4]), (int) i[5]);
             }
 
         }// End Daily Orders
 
-            // SQL Step 3: Daily Purchase Totals
-        else if(op == 3){
+        // SQL Step 3: Daily Purchase Totals
+        else if (op == 3) {
             //TODOd: Iterate through ArrayList to get elements & add to TimeSeries
             al = qm.getAnalyticsData(start, end, dailyPurchase);
 
-            series = new TimeSeries( "Daily Purchase" );
+            series = new TimeSeries("Daily Purchase");
 
-            for(Object[] i : al){
-                series.add(new Minute((int) i[0],(int) i[1],(int) i[2],(int) i[3],(int) i[4]), (Double) i[5]);
+            for (Object[] i : al) {
+                series.add(new Minute((int) i[0], (int) i[1], (int) i[2], (int) i[3], (int) i[4]), (Double) i[5]);
             }
         }//End else
 
@@ -103,8 +100,7 @@ public class TimeSeries_AWT extends ApplicationFrame {
                     false,
                     false,
                     false);
-        }
-        else if(op == 2){
+        } else if (op == 2) {
             return ChartFactory.createTimeSeriesChart(
                     "Daily Orders",
                     "Months",
@@ -113,8 +109,7 @@ public class TimeSeries_AWT extends ApplicationFrame {
                     false,
                     false,
                     false);
-        }
-        else if(op == 3){
+        } else if (op == 3) {
             return ChartFactory.createTimeSeriesChart(
                     "Daily Purchases",
                     "Months",

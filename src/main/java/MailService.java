@@ -4,7 +4,10 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.search.FlagTerm;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Properties;
+import java.util.Queue;
 
 public class MailService {
 
@@ -105,6 +108,7 @@ public class MailService {
      * Cancellation process will send email to customer and cancel order for further processing
      * Otherwise send a confirmation email to customer stating order received and is being processed
      * send the valid orders to be processed to our inventory for processing via MySQL after proper formatting
+     *
      * @param credentials - pass along proper credentials
      * @param qm          - create a new query
      */
