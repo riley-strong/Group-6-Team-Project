@@ -184,8 +184,7 @@ public class MailService {
 
                         String date;
 
-                        date = message.getSentDate().getYear() + "";
-                        date = "20" + date.substring(1) + "-" + message.getSentDate().getMonth() + "-" + message.getSentDate().getDate();
+                        date = (message.getSentDate().getYear() + 1900) + "-" + (message.getSentDate().getMonth() + 1) + "-" + message.getSentDate().getDate();
 
                         String products = messageProductID.toString();
 
