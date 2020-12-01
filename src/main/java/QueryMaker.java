@@ -9,6 +9,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.*;
+
 import static java.time.temporal.ChronoUnit.DAYS;
 
 
@@ -17,15 +18,15 @@ public class QueryMaker {
     public static int DOUBLE = 2;
     public static int INT = 1;
     public static int STRING = 0;
+    public static Statement statement;
     private static Connection connection;
     private PreparedStatement preparedStatement;
-    public static Statement statement;
     private String tableName;
-
 
 
     /**
      * Creates QueryMaker object that is used to interact with MySQL Database
+     *
      * @param userName     MySQL userName
      * @param password     MySQL password
      * @param ipAddress    MySQL IP Address
@@ -45,12 +46,25 @@ public class QueryMaker {
     }
 
     /**
+     * quote wraps a integer value.
+     *
+     * @param value - user provided String value
+     * @return return a quote wrapped string
+     */
+
+    public static String valueQueryPrep(String value) {
+        value = "'" + value + "'";
+        return value;
+    }
+
+    /**
      * transfers unprocessed customer_orders csv file into the unprocessed_sales SQL table
      * add an additional column to unprocessed_sales table for hashing emails
      * load and hash customer emails in hash_ref table from unprocessed_sales table
      * add newly hashed emails into the unprocessed_sales table from hash_ref.
      * DELETE un-hashed emails column from unprocessed_sales
      * We now have a SQL table with unprocessed sales and hashed customer emails
+     *
      * @throws SQLException
      * @throws FileNotFoundException
      * @throws ClassNotFoundException
@@ -79,6 +93,7 @@ public class QueryMaker {
      * load processed_sales with the information below
      * date, processed_datetime, un-hashed_email, cust_location, product_id, product_quantity, result
      * We now have a table with ALL the information we need for analytics.
+     *
      * @throws SQLException
      */
 
@@ -139,7 +154,7 @@ public class QueryMaker {
                 psList.add(t.processTransaction(0)); //not enough inventory in stock; order more from supplier
                 invHashMap.put(t.getProduct_TID(), inv_q + resupply_quantity);
                 ResultSet s_tid_rs = statement.executeQuery("SELECT supplier_tid FROM dim_product " +
-                        "WHERE product_tid = " + t.getProduct_TID() );
+                        "WHERE product_tid = " + t.getProduct_TID());
                 int s_tid = 0;
                 s_tid_rs.next();
                 s_tid = s_tid_rs.getInt(1);
@@ -195,7 +210,7 @@ public class QueryMaker {
         System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         //Step 9: Alter inventory & historic inventory with new temporary values
         updateTableFromTable("inventory", "temp_inventory",
-        "quantity", "quantity",
+                "quantity", "quantity",
                 "product_tid", "product_tid");
 
         System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
@@ -249,6 +264,7 @@ public class QueryMaker {
      * creates four tables: inventory, unprocessed_sales, hash_ref and processed_sales
      * inventory table is loaded with csv file information
      * all other tables have specified columns created, are empty and ready to use
+     *
      * @throws SQLException
      * @throws FileNotFoundException
      */
@@ -265,10 +281,10 @@ public class QueryMaker {
         this.insertRows(new String[]{"product_id", "quantity", "wholesale_cost", "sale_price", "supplier_id"}, objArr);
     }
 
-
     /**
      * creates a new table with the following two arguments:
      * NOTE - method checks and deletes if the table already exists first
+     *
      * @param tableName   - name of table name
      * @param columnSpecs - name the columns and a variable type (int, DATE, VARCHAR etc..)
      * @throws SQLException
@@ -281,6 +297,7 @@ public class QueryMaker {
 
     /**
      * takes in a csv file and formats it to be SQL recognizable (quote wrapping) using the following two arguments:
+     *
      * @param fileName - csv filename
      * @param types    - integer array of types (STRING, DATE, INT etc..)
      * @return - 2D array of SQL format readable information from the csv file
@@ -313,6 +330,7 @@ public class QueryMaker {
 
     /**
      * deletes any values from a table based on three of the following arguments:
+     *
      * @param tableName  - name of table to delete from
      * @param columnName - name of column within the table
      * @param value      - deletes all rows with the DECIMAL value matching that of the search
@@ -325,6 +343,7 @@ public class QueryMaker {
 
     /**
      * deletes any values from a table based on three of the following arguments:
+     *
      * @param tableName  - name of table to delete from
      * @param columnName - name of column within the table
      * @param value      - deletes all rows with the INTEGER value matching that of the search
@@ -332,11 +351,12 @@ public class QueryMaker {
      */
 
     public void deleteRecords(String tableName, String columnName, int value) throws SQLException {
-        statement.executeUpdate("DELETE FROM " + tableName + "WHERE " + columnName + " = " + valueQueryPrep(value));
+        statement.executeUpdate("DELETE FROM " + tableName + " WHERE " + columnName + " = " + valueQueryPrep(value));
     }
 
     /**
      * deletes any values from a table based on three of the following arguments:
+     *
      * @param tableName  - name of table to delete from
      * @param columnName - name of column within the table
      * @param value      - deletes all rows with the STRING value matching that of the search
@@ -349,6 +369,7 @@ public class QueryMaker {
 
     /**
      * deletes all rows given the table name but preserves the table
+     *
      * @throws SQLException
      */
 
@@ -359,6 +380,7 @@ public class QueryMaker {
 
     /**
      * deletes the entire table given the table name.
+     *
      * @param tableName
      * @throws SQLException
      */
@@ -369,6 +391,7 @@ public class QueryMaker {
 
     /**
      * deletes the table based on the following arguments:
+     *
      * @param tableName - name of table
      * @param condition - this condition must be met
      * @throws SQLException
@@ -381,6 +404,7 @@ public class QueryMaker {
     /**
      * call setTableName() to proceed to use this method.
      * displays the information in the IDE console from the SQL table.
+     *
      * @throws SQLException
      */
 
@@ -400,6 +424,7 @@ public class QueryMaker {
     /**
      * helper method for getProduct() method.
      * returns a 2D object array of information taking the following arguments.
+     *
      * @param rs          - must provide a result set.
      * @param isOneColumn - boolean value if the extracted information is one column or greater.
      * @return 2D object results of data.
@@ -436,6 +461,7 @@ public class QueryMaker {
 
     /**
      * given an argument (any SQL statement) it will return a table of useful data.
+     *
      * @param s - any SQL syntax commands.
      * @return returns a table of data that is scrollable.
      * @throws SQLException
@@ -451,6 +477,7 @@ public class QueryMaker {
 
     /**
      * given an argument (any SQL statement) it will update any changes to a specified target.
+     *
      * @param s - any SQL syntax commands.
      * @throws SQLException
      */
@@ -465,6 +492,7 @@ public class QueryMaker {
     /**
      * call setTableName() to proceed to use this method.
      * based on the table name we can return the column names of that table.
+     *
      * @return tables column names
      * @throws SQLException
      */
@@ -499,19 +527,17 @@ public class QueryMaker {
                 }
                 al.add(arr);
             }
-        }
-        else if (choice == 2) {
+        } else if (choice == 2) {
             ResultSet rs = statement.executeQuery("call TEAM_6_DB.daily_orders(@startDate, @endDate)");
 
             while (rs.next()) {
                 arr = new Object[6];
-                for (int i = 0; i < arr.length; i++){
+                for (int i = 0; i < arr.length; i++) {
                     arr[i] = rs.getInt(i + 1);
                 }
                 al.add(arr);
             }
-        }
-        else if (choice == 3) {
+        } else if (choice == 3) {
             ResultSet rs = statement.executeQuery("call TEAM_6_DB.daily_purchases(@startDate, @endDate)");
 
             while (rs.next()) {
@@ -531,6 +557,7 @@ public class QueryMaker {
     /**
      * uses the extractResults() method to help return the information searched for
      * returns the information searched for given the following arguments below:
+     *
      * @param tableName   - specify the name of the table.
      * @param columnName  - specify the name of the column within the table.
      * @param columnValue - specify any object type searched for (int, String etc).
@@ -547,6 +574,7 @@ public class QueryMaker {
 
     /**
      * quote wraps a specified String or Date based on the argument below.
+     *
      * @param columnValue - any column containing a String or Date will be wrapped in quotes for SQL syntax.
      * @return
      */
@@ -560,6 +588,7 @@ public class QueryMaker {
 
     /**
      * getter method for returning the table name.
+     *
      * @return - any table name found in the database.
      */
 
@@ -568,8 +597,19 @@ public class QueryMaker {
     }
 
     /**
+     * setter method for table name.
+     * ALWAYS SET THE TABLE NAME BEFORE PROCEEDING WITH ANYTHING ELSE.
+     *
+     * @param tableName - String name given from user.
+     */
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
+    }
+
+    /**
      * call setTableName() to proceed to use this method.
      * loads specified rows of information in a table given the following arguments.
+     *
      * @param columnNames - names of all the columns.
      * @param rows        - 2D array of all the information to add.
      * @throws SQLException
@@ -593,6 +633,7 @@ public class QueryMaker {
 
     /**
      * add new information into a table with unspecified column given the two following arguments:
+     *
      * @param tableName - name of the table.
      * @param values    - the values to be added.
      * @throws SQLException
@@ -604,6 +645,7 @@ public class QueryMaker {
 
     /**
      * add new information into a table with the specified column name given the three following arguments:
+     *
      * @param tableName   - name of table.
      * @param columnNames - name of column in the table.
      * @param values      - the values to be added.
@@ -620,6 +662,7 @@ public class QueryMaker {
 
     /**
      * If the information is of type String or LocalDate then it will be formatted for SQL readable syntax.
+     *
      * @param columnValue - value must be of type String or LocalDate.
      * @return returns a string of SQL friendly syntax.
      */
@@ -633,6 +676,7 @@ public class QueryMaker {
 
     /**
      * searches a table for specific information and returns any results given the following arguments:
+     *
      * @param tableName   - name of table.
      * @param whereClause - what user is searching for.
      * @param value       - what user search is checked against.
@@ -651,6 +695,7 @@ public class QueryMaker {
 
     /**
      * reads a table based on the argument below:
+     *
      * @param tableName - name of table.
      * @return return a table of data - result set.
      * @throws SQLException
@@ -664,6 +709,7 @@ public class QueryMaker {
 
     /**
      * reads a table based on a given condition.
+     *
      * @param tableName - name of table.
      * @param condition - a condition can be weather something is true for false or (0 or 1).
      * @return a table of data - result set.
@@ -677,6 +723,7 @@ public class QueryMaker {
 
     /**
      * searches a table for a value based on column name.
+     *
      * @param columnName  - name of column from table.
      * @param tableName   - name of table.
      * @param whereClause - what the user is searching for in the column.
@@ -692,6 +739,7 @@ public class QueryMaker {
 
     /**
      * returns the number of rows in the result set.
+     *
      * @param rs - specify a result set.
      * @return return the number or rows in that result set.
      * @throws SQLException
@@ -704,17 +752,9 @@ public class QueryMaker {
     }
 
     /**
-     * setter method for table name.
-     * ALWAYS SET THE TABLE NAME BEFORE PROCEEDING WITH ANYTHING ELSE.
-     * @param tableName - String name given from user.
-     */
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-
-    /**
      * creates a new temporary table that will fill information on the top ten customers.
      * takes on the customer information: date , customer email, product ID, total purchased.
+     *
      * @throws SQLException
      */
 
@@ -727,6 +767,7 @@ public class QueryMaker {
 
     /**
      * populate one tables information into another with the original tables information.
+     *
      * @param tableName1        - original table name.
      * @param tableName2        - new table name.
      * @param setColumnNameT1   - first column name.
@@ -744,6 +785,7 @@ public class QueryMaker {
 
     /**
      * populate one tables information into another with the original tables information such that a condition is met.
+     *
      * @param tableName1        - original table name.
      * @param setColumnNameT1   - new column name.
      * @param value             - values to be added.
@@ -760,6 +802,7 @@ public class QueryMaker {
 
     /**
      * searches a table for a DECIMAL value and returns true/false based on the given arguments below:
+     *
      * @param columnName - name of column.
      * @param tableName  - name of table.
      * @param value      - the value being searched by the user.
@@ -779,6 +822,7 @@ public class QueryMaker {
 
     /**
      * searches a table for an INTEGER value and returns true/false based on the given arguments below:
+     *
      * @param columnName - name of column.
      * @param tableName  - name of table.
      * @param value      - the value being searched by the user.
@@ -797,6 +841,7 @@ public class QueryMaker {
 
     /**
      * searches a table for a STRING value and returns true/false based on the given arguments below:
+     *
      * @param columnName - name of column.
      * @param tableName  - name of table.
      * @param value      - the value being searched by the user.
@@ -815,6 +860,7 @@ public class QueryMaker {
 
     /**
      * formats and parses the date and time based on the format year-month-day hour:minute:second.
+     *
      * @param value - the date time value given from the user.
      * @return return the parsed time/date format.
      */
@@ -828,6 +874,7 @@ public class QueryMaker {
 
     /**
      * formats and parses the date based on the format year-month-day.
+     *
      * @param value - user provided value.
      * @return return the parsed date format.
      */
@@ -841,6 +888,7 @@ public class QueryMaker {
 
     /**
      * wrapper class for a millisecond value that is recognized as SQL format.
+     *
      * @param value - SQL provided value.
      * @return returns the proper year-month-day format.
      */
@@ -854,6 +902,7 @@ public class QueryMaker {
 
     /**
      * quote wraps a decimal value.
+     *
      * @param value - user provided decimal value.
      * @return return a quote wrapped string.
      */
@@ -865,6 +914,7 @@ public class QueryMaker {
 
     /**
      * quote wraps a integer value.
+     *
      * @param value - user provided integer value.
      * @return return a quote wrapped string.
      */
@@ -872,16 +922,5 @@ public class QueryMaker {
     public String valueQueryPrep(int value) {
         String result = "'" + value + "'";
         return result;
-    }
-
-    /**
-     * quote wraps a integer value.
-     * @param value - user provided String value
-     * @return return a quote wrapped string
-     */
-
-    public static String valueQueryPrep(String value) {
-        value = "'" + value + "'";
-        return value;
     }
 }
