@@ -4,8 +4,12 @@ import java.awt.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class CupOJavaGui  {
+public class CupOJavaGui {
 
+    public static final int SEARCH = 0;
+    public static final int DELETE = 1;
+    public static final int button3 = 2;
+    private final QueryMaker qm;
     JButton[] buttons;
     JTable centerDisplayTable;
     GridBagConstraints centerGbc;
@@ -19,12 +23,9 @@ public class CupOJavaGui  {
     JPanel panelEast;
     JPanel panelNorth;
     JPanel panelWest;
-    private final QueryMaker qm;
     GridBagConstraints westGbc;
     GridBagLayout westGbl;
     private Object[][] centerDisplayData;
-
-
     public CupOJavaGui(QueryMaker qm) throws SQLException {
         this.qm = qm;
         frame = new JFrame("Cup O' Java");
@@ -34,20 +35,23 @@ public class CupOJavaGui  {
         getTableListPanelEast(new String[]{"Button1", " Button2", "Button3", "Button4"});
         frame.setLocationRelativeTo(null);
         ResultSet rs = qm.generateQuery(" SELECT * FROM " + qm.getTableName());
-        refresh(qm.extractResults(rs,false));
+        refresh(qm.extractResults(rs, false));
         frame.pack();
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
-    public static final int SEARCH = 0;
-    public static final int DELETE = 1;
-    public static final int  button3 = 2;
+    public static void main(String[] args) throws SQLException, ClassNotFoundException {
 
+        final Credentials credentials = new Credentials();
+        QueryMaker qm = credentials.getQueryMaker();
+        qm.setTableName("inventory");
+        CupOJavaGui coj = new CupOJavaGui(qm);
+    }
 
     private void refresh(Object[][] data) throws SQLException {
         centerDisplayData = data;
-        DefaultTableModel dm = (DefaultTableModel)centerDisplayTable.getModel();
+        DefaultTableModel dm = (DefaultTableModel) centerDisplayTable.getModel();
         dm.setDataVector(this.centerDisplayData, qm.getColumnNames());
         dm.fireTableDataChanged();
     }
@@ -68,18 +72,18 @@ public class CupOJavaGui  {
             String columnName = null;
             String tableName = null;
             try {
-                while(columnValue == null || columnValue.isEmpty()){
+                while (columnValue == null || columnValue.isEmpty()) {
                     columnValue = JOptionPane.showInputDialog("Enter value of column");
-                    if(columnValue.isEmpty()){
+                    if (columnValue.isEmpty()) {
                         JOptionPane optionPane = new JOptionPane("Enter a valid column value!", JOptionPane.ERROR_MESSAGE);
                         JDialog dialog = optionPane.createDialog("Failure");
                         dialog.setAlwaysOnTop(true);
                         dialog.setVisible(true);
                     }
                 }
-                while(columnName == null || columnName.isEmpty()){
-                    columnName= JOptionPane.showInputDialog("Enter column Name");
-                    if(columnName.isEmpty()){
+                while (columnName == null || columnName.isEmpty()) {
+                    columnName = JOptionPane.showInputDialog("Enter column Name");
+                    if (columnName.isEmpty()) {
                         JOptionPane optionPane = new JOptionPane("Enter a valid column name!", JOptionPane.ERROR_MESSAGE);
                         JDialog dialog = optionPane.createDialog("Failure");
                         dialog.setAlwaysOnTop(true);
@@ -87,16 +91,16 @@ public class CupOJavaGui  {
                     }
 
                 }
-                while(tableName == null || tableName.isEmpty()){
+                while (tableName == null || tableName.isEmpty()) {
                     tableName = JOptionPane.showInputDialog("Enter table Name");
-                    if(tableName.isEmpty()){
+                    if (tableName.isEmpty()) {
                         JOptionPane optionPane = new JOptionPane("Enter a valid table name!", JOptionPane.ERROR_MESSAGE);
                         JDialog dialog = optionPane.createDialog("Failure");
                         dialog.setAlwaysOnTop(true);
                         dialog.setVisible(true);
                     }
                 }
-                Object[][] rows = qm.getProduct(tableName, columnName,columnValue);
+                Object[][] rows = qm.getProduct(tableName, columnName, columnValue);
                 refresh(rows);
             } catch (NullPointerException | SQLException ignore) {
             } finally {
@@ -144,14 +148,6 @@ public class CupOJavaGui  {
         guiTitle = new JLabel(title);
         panelNorth = new JPanel();
         panelNorth.add(guiTitle);
-    }
-
-    public static void main(String[] args) throws SQLException, ClassNotFoundException {
-
-        final Credentials credentials = new Credentials();
-        QueryMaker qm = credentials.getQueryMaker();
-        qm.setTableName("inventory");
-        CupOJavaGui coj = new CupOJavaGui(qm);
     }
 
 

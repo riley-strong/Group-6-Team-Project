@@ -11,7 +11,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import static java.time.temporal.ChronoUnit.DAYS;
 
 
@@ -361,7 +360,7 @@ public class QueryMaker {
      */
 
     public void deleteRecords(String tableName, String columnName, int value) throws SQLException {
-        statement.executeUpdate("DELETE FROM " + tableName + "WHERE " + columnName + " = " + valueQueryPrep(value));
+        statement.executeUpdate("DELETE FROM " + tableName + " WHERE " + columnName + " = " + valueQueryPrep(value));
     }
 
     /**

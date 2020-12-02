@@ -15,6 +15,7 @@ public class Main {
     //private final String customer_orders_file = "10Ktesting.csv"; //file to stress test db.
     //private final String customer_orders_file = "100Ktesting.csv"; //file to stress test db.
     private final String customer_orders_file = "customer_orders_A_team6.csv";
+    private final String customer_orders_file = "customer_orders_final_team6.csv";
     private final String dim_date_start = "1900-01-01";
     private final String dim_date_end = "3000-12-31";
     private final String top_ten_date = "2020-03-01";
@@ -39,6 +40,7 @@ public class Main {
 
         //Database re-creation as well as batch (.csv) file loading and processing
         System.out.println("The Credentials and QueryMaker objects have been created.");
+
         qm.createDatabaseStructure(inventory_file);
         System.out.println("The basic database structure has been created and inventory has been loaded.");
         dbCreation = LocalTime.now();
@@ -56,17 +58,17 @@ public class Main {
         System.out.println("Daily assets loaded.");
         dAssets = LocalTime.now();
 
-
+      
         //MailService Demonstration
         qm.createTable("temp_unprocessed_sales",
-                "date DATE ,cust_email VARCHAR(320) ,cust_location VARCHAR(5) ,product_id VARCHAR(12) ,product_quantity INT");
-//                MailService mail = new MailService();
-//                System.out.println("\nReading emails");
-//                mail.readEmail(credentials, qm);
-//                System.out.println("Emails read");
-//                qm.processEmails();
-//                qm.batchProcessing(resupply_quantity, 2);
-//                System.out.println("Mail Service demonstrations completed.\n");
+        "date DATE ,cust_email VARCHAR(320) ,cust_location VARCHAR(5) ,product_id VARCHAR(12) ,product_quantity INT");
+//        MailService mail = new MailService();
+//        System.out.println("\nReading emails");
+//        mail.readEmail(credentials, qm);
+//        System.out.println("Emails read");
+//        qm.processEmails();
+//        qm.batchProcessing(resupply_quantity, 2);
+//        System.out.println("Mail Service demonstrations completed.\n");
         mailServiceDemo = LocalTime.now();
 
 
@@ -101,7 +103,7 @@ public class Main {
         demo3.setVisible(true);
         System.out.println("Chart demonstrations completed.");
         chartDemo = LocalTime.now();
-
+      
 
         programEnd = LocalTime.now();
         //System.out.println("\nDatabase authentication/connection took " + programStart.until(cqmCreation, SECONDS) + " seconds.");

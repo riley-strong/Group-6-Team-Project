@@ -1,22 +1,21 @@
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
-import org.jfree.data.general.SeriesException;
-import org.jfree.data.time.*;
+import org.jfree.data.time.Minute;
+import org.jfree.data.time.TimeSeries;
+import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
-
 import java.sql.*;
-
 import java.io.File;
 import java.io.IOException;
-import java.sql.*;
-import java.time.LocalDate;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 public class TimeSeries_AWT extends ApplicationFrame {
 
