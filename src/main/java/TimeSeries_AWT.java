@@ -30,11 +30,11 @@ public class TimeSeries_AWT extends ApplicationFrame {
 //        private ResultSet tempRS;
 
 
-    public TimeSeries_AWT(String title, Credentials credentials, int op) throws IOException, SQLException, ClassNotFoundException {
+    public TimeSeries_AWT(String title, Credentials credentials, int op, String start, String end) throws IOException, SQLException, ClassNotFoundException {
         super(title);
         qm = credentials.getQueryMaker();
         statement = qm.statement;
-        XYDataset dataset = createDataset(op);
+        XYDataset dataset = createDataset(op, start, end);
         JFreeChart chart = createChart(dataset, op);
         ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setPreferredSize( new java.awt.Dimension( 560 , 370 ) );
@@ -43,12 +43,9 @@ public class TimeSeries_AWT extends ApplicationFrame {
         ChartUtilities.saveChartAsPNG(new File("line_chart.png"), chart, 450, 400);
     }
 
-    private XYDataset createDataset(int op) throws SQLException {
+    private XYDataset createDataset(int op, String start, String end) throws SQLException {
         TimeSeries series = null;
         ArrayList<Object[]> al = new ArrayList<>();
-        //TODO: Gather a date range from user in the format of yyyy-mm-dd
-        String start = "2020-01-01";
-        String end = "2020-06-28";
 
         // SQL Step 1: Company Assets (1 cell value)
         if(op == 1) {

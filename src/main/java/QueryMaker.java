@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.*;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -9,6 +10,8 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import static java.time.temporal.ChronoUnit.DAYS;
 
 
@@ -57,9 +60,6 @@ public class QueryMaker {
      */
 
     public void batchLoading(String customer_orders_file, String dim_date_start, String dim_date_end) throws SQLException, FileNotFoundException, ClassNotFoundException {
-        int a = 0;
-
-        System.out.println("Batch Loading. Step " + ++a + " - " + LocalTime.now());
         // Step 1: Load SQL unprocessed_sales table with Java 2-D Array using .csv file for data source.
         Object[][] objArr = this.csvToArray(customer_orders_file, new int[]{DATE, STRING, STRING, STRING, INT});
         this.setTableName("temp_unprocessed_sales");
@@ -83,8 +83,6 @@ public class QueryMaker {
      */
 
     public void batchProcessing(int resupply_quantity, int platform) throws SQLException {
-        int z = 0;
-        System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         // Step 1: Pull inventory table into Java data structure.
         ResultSet inv = statement.executeQuery("SELECT product_tid, quantity FROM inventory ");
         HashMap<Integer, Integer> invHashMap = new HashMap<>();
@@ -99,9 +97,12 @@ public class QueryMaker {
         HashMap<Integer, Integer> invHashMap_original = new HashMap<>();
         invHashMap_original.putAll(invHashMap);
 
-        System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
+        HashMap<Integer, Integer> invHashMap2 = new HashMap<>();
+        invHashMap2.putAll(invHashMap);
+
+
         // Step 2: Pull unprocessed sales into Java data structure
-        ResultSet us = statement.executeQuery("SELECT * FROM unprocessed_sales ORDER BY 1, 5");
+        ResultSet us = statement.executeQuery("SELECT * FROM unprocessed_sales ORDER BY date, hashed_email");
         java.sql.Date us_date;
         String us_loc;
         int us_p_tid;
@@ -120,7 +121,27 @@ public class QueryMaker {
             usList.add(transaction);
         }
 
-        System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
+        ResultSet us2 = statement.executeQuery("SELECT DISTINCT product_tid, quantity FROM unprocessed_sales");
+        HashMap<Integer, Integer> usalesHashMap = new HashMap<>();
+        Integer usales_p_tid;
+        Integer usales_quant;
+        while (us2.next()) {
+            usales_p_tid = us2.getInt(1);
+            usales_quant = us2.getInt(2);
+            usalesHashMap.put(usales_p_tid, usales_quant);
+        }
+
+
+        Iterator usales_iter = invHashMap2.entrySet().iterator();
+        while (usales_iter.hasNext()) {
+            Map.Entry a = (Map.Entry) usales_iter.next();
+            if (!usalesHashMap.containsKey(a.getKey())) {
+                invHashMap.remove(a.getKey());
+            }
+        }
+
+
+
         // Step 3: Iteratively compare batch orders to inventory, updating inventory & unprocessed sales Java structures
         int inv_q;
         int us_q;
@@ -148,7 +169,6 @@ public class QueryMaker {
             }
         }
 
-        System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         //Step 4: Remove duplicates (unchanged quantities) from hash map to go into inventory SQL table.
         Iterator iter = invHashMap_original.entrySet().iterator();
         while (iter.hasNext()) {
@@ -157,12 +177,10 @@ public class QueryMaker {
                 invHashMap.remove(p.getKey());
         }
 
-        System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         //Step 5: Create indexed tables to house new inventory and historic inventory values on SQL server side
         createTable("temp_inventory",
                 "product_tid INT, quantity INT, INDEX temp_product_id_index (product_tid)");
 
-        System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         // Step 6: Prepare SQL statement with updated inventory and historic inventory values from Java data structure.
         Iterator it = invHashMap.entrySet().iterator();
         LinkedList<Object[]> inv_Array = new LinkedList<>();
@@ -184,7 +202,6 @@ public class QueryMaker {
             }
         }
 
-        System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         //Step 7: Insert Rows into temp_inventory SQL tables
         this.setTableName("temp_inventory");
         this.insertRows(inv_headers, inv_objects);
@@ -192,13 +209,11 @@ public class QueryMaker {
         //Step 8: Optimize batch processing by indexing the temporary table on SQL server side.
 //        statement.executeUpdate("ALTER TABLE temp_inventory ADD INDEX `temp_product_id_index` (`product_id`) ");
 
-        System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         //Step 9: Alter inventory & historic inventory with new temporary values
         updateTableFromTable("inventory", "temp_inventory",
         "quantity", "quantity",
                 "product_tid", "product_tid");
 
-        System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         //Step 10: Construct second parameter of InsertRows method (2-D Object Array)
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LinkedList<Object[]> tempArray = new LinkedList<>();
@@ -225,7 +240,6 @@ public class QueryMaker {
             }
         }
 
-        System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         //Step 11: Insert Rows into processed_sales SQL table
         this.setTableName("processed_sales");
         this.insertRows(headers, objects);
@@ -234,11 +248,9 @@ public class QueryMaker {
         if (platform == 2)
             statement.execute("CALL TEAM_6_DB.emailAssetAddition()");
 
-        System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         //Step 12: Truncate unprocessed_sales table.
         statement.executeUpdate("TRUNCATE unprocessed_sales");
 
-        System.out.println("Batch Processing. Step " + ++z + " - " + LocalTime.now());
         //Step 13: Delete the temporary inventory and temporary historic inventory tables
         deleteTable("temp_inventory");
 
@@ -425,8 +437,8 @@ public class QueryMaker {
     }
 
     public void generateDailyAssets(String start, String end) throws SQLException {
-        LocalDate start_ld = LocalDate.of(Integer.parseInt(start.substring(6)), Integer.parseInt(start.substring(0, 2)), Integer.parseInt(start.substring(3, 5)));
-        LocalDate end_ld = LocalDate.of(Integer.parseInt(end.substring(6)), Integer.parseInt(end.substring(0, 2)), Integer.parseInt(end.substring(3, 5)));
+        LocalDate start_ld = LocalDate.parse(start);
+        LocalDate end_ld = LocalDate.parse(end);
         int stopPoint = (int) DAYS.between(start_ld, end_ld) + 1;
         for (int i = 0; i < stopPoint; i++) {
             statement.executeUpdate("CALL TEAM_6_DB.generateDailyAssets( '" + start_ld.toString() + "')");
@@ -582,13 +594,27 @@ public class QueryMaker {
         builder.append(" INSERT INTO " + tableName + " ( " + s.substring(1, s.length() - 1) + " ) VALUES ");
         for (int i = 0; i < rows.length; i++) {
 
-            String s1 = Arrays.deepToString(rows[i]);
-            builder.append(" ( " + s1.substring(1, s1.length() - 1) + " )");
-            if (i < rows.length - 1) {
-                builder.append(",");
+            if (i % 2000 != 0 || i == 0) {
+                String s1 = Arrays.deepToString(rows[i]);
+                builder.append(" ( " + s1.substring(1, s1.length() - 1) + " )");
+                if (i < rows.length - 1) {
+                    builder.append(",");
+                }
+            }
+            else {
+                builder.setLength(builder.length() - 1);
+                String s2 = builder.toString();
+                generateUpdate(s2);
+
+                builder.setLength(0);
+                builder.append(" INSERT INTO " + tableName + " ( " + s.substring(1, s.length() - 1) + " ) VALUES ");
             }
         }
-        generateUpdate(builder.toString());
+        if (builder.length() > 0) {
+            builder.setLength(builder.length());
+            String s2 = builder.toString();
+            generateUpdate(s2);
+        }
     }
 
     /**
@@ -714,16 +740,51 @@ public class QueryMaker {
 
     /**
      * creates a new temporary table that will fill information on the top ten customers.
-     * takes on the customer information: date , customer email, product ID, total purchased.
+     * takes on the customer information: date , customer email, total purchased.
      * @throws SQLException
      */
 
-    public void topTenCustomers() throws SQLException {
-        statement.execute("DROP TABLE IF EXISTS temp");
-        this.createTable("temp", "date date, cust_email VARCHAR(320), product_id VARCHAR(12), Total_Purchase DECIMAL (64, 2)");
-        statement.executeUpdate("INSERT INTO temp ");
+    public void topTenCustomers(String theDate) throws SQLException {
+        LocalDate theDate_ld = LocalDate.parse(theDate);
 
+        statement.executeUpdate("SET @theDate = '" + theDate_ld.toString() + "'");
+
+        ResultSet rs = statement.executeQuery("CALL TEAM_6_DB.topTenCustomers(@theDate) ");
+
+        System.out.println("\nThe top ten customers for " + theDate + " are:");
+        System.out.printf("%-25s %-25s %-25s",
+                "Date", "Customer Email", "Total Purchased");
+        NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        while (rs.next()) {
+            System.out.printf("\n%-25s %-25s %-25s",
+                    rs.getDate(1).toString(), rs.getString(2), formatter.format(rs.getDouble(3)));
+        }
+        System.out.println();
     }
+
+    /**
+     * creates a new temporary table that will fill information on the top ten products.
+     * takes on the customer information: date , product, total sold.
+     * @throws SQLException
+     */
+
+    public void topTenProducts(String theDate) throws SQLException {
+        LocalDate theDate_ld = LocalDate.parse(theDate);
+
+        statement.executeUpdate("SET @theDate = '" + theDate_ld.toString() + "'");
+
+        ResultSet rs = statement.executeQuery("CALL TEAM_6_DB.topTenProducts(@theDate) ");
+
+        System.out.println("\nThe top ten products for " + theDate + " are:");
+        System.out.printf("%-25s %-25s %-25s",
+                "Date", "Product", "Total Sold");
+        while (rs.next()) {
+            System.out.printf("\n%-25s %-25s %-25s",
+                    rs.getDate(1).toString(), rs.getString(2), rs.getString(3));
+        }
+        System.out.println();
+    }
+
 
     /**
      * populate one tables information into another with the original tables information.
