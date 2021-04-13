@@ -1,4 +1,5 @@
-CREATE DEFINER=`wojack5555`@`%` PROCEDURE `daily_purchases`(IN startDate DATE, IN endDate DATE)
+DELIMITER $$
+CREATE DEFINER=`wojack5555`@`localhost` PROCEDURE `daily_purchases`(IN startDate DATE, IN endDate DATE)
 BEGIN
 	#Purpose: Used to output daily assets reporting for a specified date range
 	#Author: dmill166
@@ -16,4 +17,5 @@ BEGIN
     and ps.result = 1
     GROUP BY '30', '12', DAY(ps.date), MONTH(ps.date), YEAR(ps.date)
     ORDER BY '30', '12', MONTH(date), DAY(date), YEAR(date);
-END
+END $$
+DELIMITER ;

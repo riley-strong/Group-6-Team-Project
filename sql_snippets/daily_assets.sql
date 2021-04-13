@@ -1,4 +1,5 @@
-CREATE DEFINER=`wojack5555`@`%` PROCEDURE `daily_assets`(IN startDate DATE, IN endDate DATE)
+DELIMITER $$
+CREATE DEFINER=`wojack5555`@`localhost` PROCEDURE `daily_assets`(IN startDate DATE, IN endDate DATE)
 BEGIN
 	#Purpose: Used to fill in daily_assets table
 	#Author: dmill166
@@ -21,4 +22,5 @@ BEGIN
 	FROM assets_staging ast
     GROUP BY ast.date
     ORDER BY ast.date;
-END
+END $$
+DELIMITER ;
