@@ -25,14 +25,14 @@ public class TimeSeries_AWT extends ApplicationFrame {
     private final int dailyOrders = 2;
     private final int dailyPurchase = 3;
     private final QueryMaker qm;
-//        private static Object JDBCTutorialUtilities;
-//        private PreparedStatement preparedStatement;
-//        private ResultSet tempRS;
+//  private static Object JDBCTutorialUtilities;
+//  private PreparedStatement preparedStatement;
+//  private ResultSet tempRS;
 
 
-    public TimeSeries_AWT(String title, Credentials credentials, int op, String start, String end) throws IOException, SQLException, ClassNotFoundException {
+    public TimeSeries_AWT(String title, QueryMaker qm, int op, String start, String end) throws IOException, SQLException, ClassNotFoundException {
         super(title);
-        qm = credentials.getQueryMaker();
+        this.qm = qm;
         statement = QueryMaker.statement;
         XYDataset dataset = createDataset(op, start, end);
         JFreeChart chart = createChart(dataset, op);

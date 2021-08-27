@@ -3,6 +3,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.search.FlagTerm;
+import javax.mail.Session;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -12,16 +14,15 @@ import java.util.Queue;
 public class MailService {
 
     /**
-     * @param credentials  - String array of credentials
      * @param emailAddress - string representation of email address
      * @param emailBody    - string representation of email body
      * @return boolean value if the Gmail was able to connect to the smtp server using the proper email and password
      * Note - password uses authentication for the username
      */
 
-    private boolean sendEmail(Credentials credentials, String emailAddress, String emailBody) {
+    private boolean sendEmail( String emailAddress, String emailBody) {
 
-        String from = credentials.getEmail();
+        String from = "";
         String host = "smtp.gmail.com";
         Properties properties = System.getProperties();
 
@@ -34,7 +35,7 @@ public class MailService {
 
             protected PasswordAuthentication getPasswordAuthentication() {
 
-                return new PasswordAuthentication(credentials.getEmail(), credentials.getEmailPassword());
+                return new PasswordAuthentication("", "");
             }
         });
 
@@ -109,14 +110,13 @@ public class MailService {
      * Otherwise send a confirmation email to customer stating order received and is being processed
      * send the valid orders to be processed to our inventory for processing via MySQL after proper formatting
      *
-     * @param credentials - pass along proper credentials
      * @param qm          - create a new query
      */
 
-    public void readEmail(Credentials credentials, QueryMaker qm) {
+    public void readEmail( QueryMaker qm) {
         String host = "pop.gmail.com";
-        String user = credentials.getEmail();
-        String password = credentials.getEmailPassword();
+        String user = "";
+        String password = "";
 
         try {
             Properties properties = new Properties();
@@ -193,13 +193,13 @@ public class MailService {
                         String products = messageProductID.toString();
 
                         while (messageProductID.peek() != null) {
-                            orders.add(new Transaction(java.sql.Date.valueOf(date), location, messageProductID.poll(), Integer.parseInt(messageQuantity.poll()), sender));
+                            orders.add(new Transaction(Date.valueOf(date), location, messageProductID.poll(), Integer.parseInt(messageQuantity.poll()), sender));
                         }
 
-                        sendEmail(credentials, message.getFrom()[0].toString(), "Order received. Your order will be stored to be processed\n" + "Your order included these products:\n" + products);
+                        sendEmail( message.getFrom()[0].toString(), "Order received. Your order will be stored to be processed\n" + "Your order included these products:\n" + products);
                     } else {
                         System.out.println("Invalid order from email");
-                        sendEmail(credentials, message.getFrom()[0].toString(), "Order not received. One of the inputs is invalid\n" + "The products you attempted to order:\n" + messageProductID);
+                        sendEmail( message.getFrom()[0].toString(), "Order not received. One of the inputs is invalid\n" + "The products you attempted to order:\n" + messageProductID);
                     }
                 }
             }
@@ -209,7 +209,7 @@ public class MailService {
                 Transaction t = (Transaction) ordersIter.next();
                 if (canceled_Orders.contains(t.getCustEmail())) {
                     System.out.println("Order removed due to cancellation email");
-                    sendEmail(credentials, t.getCustEmail(), "Your order for " + t.getProduct_ID() + " has been canceled");
+                    sendEmail( t.getCustEmail(), "Your order for " + t.getProduct_ID() + " has been canceled");
                     ordersIter.remove();
                 }
             }

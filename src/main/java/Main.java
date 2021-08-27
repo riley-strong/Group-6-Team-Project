@@ -11,32 +11,30 @@ public class Main {
 
     private static LocalTime programStart;
     private static LocalTime programEnd;
-    private final String inventory_file = "inventory_team6.csv";
+    private static final String inventory_file = "inventory_team6.csv";
     //private final String customer_orders_file = "10Ktesting.csv"; //file to stress test db.
     //private final String customer_orders_file = "100Ktesting.csv"; //file to stress test db.
-    private final String customer_orders_file = "customer_orders_A_team6.csv";
-    private final String customer_orders_file = "customer_orders_final_team6.csv";
-    private final String dim_date_start = "1900-01-01";
-    private final String dim_date_end = "3000-12-31";
-    private final String top_ten_date = "2020-03-01";
-    private final String analytics_start = "2020-01-01";
-    private final String analytics_end = "2020-06-28";
-    private final int resupply_quantity = 500;
+    private static final String customer_orders_file = "customer_orders_A_team6.csv";
+    //private static final String customer_orders_file = "customer_orders_final_team6.csv";
+    private static final String dim_date_start = "1900-01-01";
+    private static final String dim_date_end = "3000-12-31";
+    private static final String top_ten_date = "2020-03-01";
+    private static final String analytics_start = "2020-01-01";
+    private static final String analytics_end = "2020-06-28";
+    private static final int resupply_quantity = 500;
 
 
     public Main() {
 
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args)throws IOException, SQLException, ClassNotFoundException {
         System.out.println("Program Start.");
         programStart = LocalTime.now();
+        LocalTime qmCreation,dbCreation, bLoading, bProcessing, dAssets, chartDemo, mailServiceDemo;
 
-        final Credentials credentials = new Credentials();
-    }
-
-    public void invoke(Credentials credentials, QueryMaker qm) throws IOException, SQLException, ClassNotFoundException {
-        LocalTime dbCreation, bLoading, bProcessing, dAssets, chartDemo, mailServiceDemo;
+        QueryMaker qm = new QueryMaker();
+        qmCreation = LocalTime.now();
 
         //Database re-creation as well as batch (.csv) file loading and processing
         System.out.println("The Credentials and QueryMaker objects have been created.");
@@ -62,14 +60,14 @@ public class Main {
         //MailService Demonstration
         qm.createTable("temp_unprocessed_sales",
         "date DATE ,cust_email VARCHAR(320) ,cust_location VARCHAR(5) ,product_id VARCHAR(12) ,product_quantity INT");
-//        MailService mail = new MailService();
-//        System.out.println("\nReading emails");
-//        mail.readEmail(credentials, qm);
-//        System.out.println("Emails read");
-//        qm.processEmails();
-//        qm.batchProcessing(resupply_quantity, 2);
-//        System.out.println("Mail Service demonstrations completed.\n");
-        mailServiceDemo = LocalTime.now();
+       MailService mail = new MailService();
+       System.out.println("\nReading emails");
+       mail.readEmail( qm);
+       System.out.println("Emails read");
+       qm.processEmails();
+//       qm.batchProcessing(resupply_quantity, 1);
+       System.out.println("Mail Service demonstrations completed.\n");
+       mailServiceDemo = LocalTime.now();
 
 
         //Top Ten Information
@@ -80,7 +78,7 @@ public class Main {
         //Chart Demonstrations
         System.out.println("\nStarting charts");
         String title = "CUP'O JAVA ASSETS";
-        TimeSeries_AWT demo = new TimeSeries_AWT(title, credentials, 1, analytics_start, analytics_end);
+        TimeSeries_AWT demo = new TimeSeries_AWT(title, qm, 1, analytics_start, analytics_end);
         demo.pack();
         RefineryUtilities.positionFrameRandomly(demo);
         System.out.println("Chart completed");
@@ -88,7 +86,7 @@ public class Main {
         System.out.println("Chart demonstrations completed.");
 
         String title2 = "CUP'O JAVA DAILY ORDERS";
-        TimeSeries_AWT demo2 = new TimeSeries_AWT(title2, credentials, 2, analytics_start, analytics_end);
+        TimeSeries_AWT demo2 = new TimeSeries_AWT(title2, qm, 2, analytics_start, analytics_end);
         demo2.pack();
         RefineryUtilities.positionFrameRandomly(demo2);
         System.out.println("Chart completed");
@@ -96,7 +94,7 @@ public class Main {
         System.out.println("Chart demonstrations completed.");
 
         String title3 = "CUP'O JAVA DAILY PURCHASE TOTALS";
-        TimeSeries_AWT demo3 = new TimeSeries_AWT(title3, credentials, 3, analytics_start, analytics_end);
+        TimeSeries_AWT demo3 = new TimeSeries_AWT(title3, qm, 3, analytics_start, analytics_end);
         demo3.pack();
         RefineryUtilities.positionFrameRandomly(demo3);
         System.out.println("Chart completed");
@@ -106,7 +104,7 @@ public class Main {
       
 
         programEnd = LocalTime.now();
-        //System.out.println("\nDatabase authentication/connection took " + programStart.until(cqmCreation, SECONDS) + " seconds.");
+        System.out.println("\nDatabase authentication/connection took " + programStart.until(qmCreation, MILLIS) + " seconds.");
         System.out.println("Database creation took " + (programStart.until(dbCreation, MILLIS) / 1000.0) + " seconds.");
         System.out.println("Batch (.csv) loading took " + (dbCreation.until(bLoading, MILLIS) / 1000.0) + " seconds.");
         System.out.println("Batch (.csv) processing took " + (bLoading.until(bProcessing, MILLIS) / 1000.0) + " seconds.");
