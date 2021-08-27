@@ -24,7 +24,7 @@ class QueryMakerTest {
         String portNumber = myReader.nextLine();
         String databaseName = myReader.nextLine();
 
-        qm = new QueryMaker(userName, password, ipAddress, portNumber, databaseName);
+        qm = new QueryMaker();
     }
 
 

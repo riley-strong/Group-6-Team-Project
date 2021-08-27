@@ -37,13 +37,13 @@ public class QueryMaker {
      * @throws SQLException
      */
 
-    public QueryMaker(String userName, String password, String ipAddress, String portNumber, String databaseName) throws ClassNotFoundException, SQLException {
+    public QueryMaker() throws ClassNotFoundException, SQLException {
 
         Class.forName("com.mysql.cj.jdbc.Driver");
-        String getURL = "jdbc:mysql://" + ipAddress + ":" + portNumber + "/" + databaseName;
-        connection = DriverManager.getConnection(getURL, userName, password);
+        String getURL = "jdbc:mysql://localhost/TEAM_6_DB?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=MST";
+        connection = DriverManager.getConnection(getURL, "wojack5555", "password");
         statement = connection.createStatement();
-        //System.out.println("Connection Succesful");
+        System.out.println("Connection Successful");
     }
 
     /**

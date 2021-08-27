@@ -6,21 +6,18 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
-
-
-out/
+#vs code
 .vscode
-.iml
-/.idea/
-/.idea
+#intellij
 .idea
-.idea/
-lib/
-target/*
-/target/*
-/target
-/target/**
-/target/**/classes
-src/test/**
-/target/
-/.idea/
+#program output
+out/
+.target
+#library
+.lib
+#line chart
+line_chart.png
+
+.classpath
+
+.project
